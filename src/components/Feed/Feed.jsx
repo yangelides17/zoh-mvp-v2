@@ -7,10 +7,11 @@
 import React, { useEffect, useCallback, useRef } from 'react';
 import useFeedData from '../../hooks/useFeedData';
 import FragmentCard from './FragmentCard';
+import FilterBar from './FilterBar';
 import '../../styles/Feed.css';
 
 const Feed = () => {
-  const { fragments, loading, error, hasMore, loadMore, refresh } = useFeedData();
+  const { fragments, loading, error, hasMore, loadMore, refresh, filters, applyFilters } = useFeedData();
   const feedRef = useRef(null);
   const loadMoreThrottleRef = useRef(false);
 
@@ -126,6 +127,13 @@ const Feed = () => {
             <span className="live-text">LIVE</span>
           </div>
         </div>
+
+        {/* Filter Bar */}
+        <FilterBar
+          onApplyFilters={applyFilters}
+          currentFilters={filters}
+        />
+
         <div className="feed-controls">
           <button onClick={refresh} className="refresh-button" title="Refresh feed (R)">
             ↻

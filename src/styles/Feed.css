@@ -92,6 +92,75 @@
   letter-spacing: 0.5px;
 }
 
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.filter-dropdowns {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-apply-button {
+  background: #5b9eff;
+  border: 1px solid #5b9eff;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.filter-apply-button.has-changes {
+  background: #5b9eff;
+  box-shadow: 0 0 10px rgba(91, 158, 255, 0.4);
+}
+
+.filter-apply-button:hover:not(:disabled) {
+  background: #4a8ee6;
+  transform: scale(1.05);
+}
+
+.filter-apply-button:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.filter-clear-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.filter-clear-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.filter-bar-loading {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+}
+
 .feed-controls {
   display: flex;
   gap: 15px;

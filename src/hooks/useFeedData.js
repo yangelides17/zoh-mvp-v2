@@ -14,6 +14,12 @@ export const useFeedData = () => {
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState(null);
 
+  // Active filters
+  const [filters, setFilters] = useState({
+    domains: [],
+    archetypes: []
+  });
+
   /**
    * Load initial fragments
    */
@@ -22,7 +28,7 @@ export const useFeedData = () => {
     setError(null);
 
     try {
-      const data = await fetchFragments(20, null);
+      const data = await fetchFragments(20, null, filters.domains, filters.archetypes);
       setFragments(data.fragments || []);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
@@ -32,7 +38,7 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filters.domains, filters.archetypes]);
 
   /**
    * Load more fragments (for infinite scroll)
@@ -44,7 +50,7 @@ export const useFeedData = () => {
     setError(null);
 
     try {
-      const data = await fetchFragments(20, cursor);
+      const data = await fetchFragments(20, cursor, filters.domains, filters.archetypes);
       setFragments(prev => [...prev, ...(data.fragments || [])]);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
@@ -54,7 +60,17 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
-  }, [cursor, hasMore, loading]);
+  }, [cursor, hasMore, loading, filters.domains, filters.archetypes]);
+
+  /**
+   * Apply new filters and reload feed
+   */
+  const applyFilters = useCallback((newFilters) => {
+    setFilters(newFilters);
+    setCursor(null);
+    setHasMore(true);
+    // Load initial fragments will be called via useEffect
+  }, []);
 
   /**
    * Refresh feed (reload from beginning)
@@ -65,7 +81,7 @@ export const useFeedData = () => {
     loadInitialFragments();
   }, [loadInitialFragments]);
 
-  // Load initial fragments on mount
+  // Load initial fragments on mount and when filters change
   useEffect(() => {
     loadInitialFragments();
   }, [loadInitialFragments]);
@@ -76,7 +92,9 @@ export const useFeedData = () => {
     error,
     hasMore,
     loadMore: loadMoreFragments,
-    refresh
+    refresh,
+    filters,
+    applyFilters
   };
 };
 

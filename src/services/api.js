@@ -20,13 +20,21 @@ const api = axios.create({
  * Fetch fragments for the feed
  * @param {number} limit - Number of fragments to fetch
  * @param {string|null} cursor - Cursor for pagination (fragment ID)
+ * @param {Array<string>} domains - Filter by domains
+ * @param {Array<string>} archetypes - Filter by archetypes
  * @returns {Promise<{fragments: Array, next_cursor: string|null, has_more: boolean}>}
  */
-export const fetchFragments = async (limit = 20, cursor = null) => {
+export const fetchFragments = async (limit = 20, cursor = null, domains = [], archetypes = []) => {
   try {
     const params = { limit };
     if (cursor) {
       params.cursor = cursor;
+    }
+    if (domains && domains.length > 0) {
+      params.domains = domains.join(',');
+    }
+    if (archetypes && archetypes.length > 0) {
+      params.archetypes = archetypes.join(',');
     }
 
     const response = await api.get('/api/feed/fragments', { params });
@@ -57,6 +65,34 @@ export const fetchFragmentMetadata = async (fragmentId) => {
     return response.data;
   } catch (error) {
     console.error('Error fetching fragment metadata:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch available sites (domains) with counts
+ * @returns {Promise<{sites: Array<{domain: string, count: number}>}>}
+ */
+export const fetchAvailableSites = async () => {
+  try {
+    const response = await api.get('/api/feed/available-sites');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching available sites:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch available archetypes with counts
+ * @returns {Promise<{archetypes: Array<{archetype: string, count: number}>}>}
+ */
+export const fetchAvailableArchetypes = async () => {
+  try {
+    const response = await api.get('/api/feed/available-archetypes');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching available archetypes:', error);
     throw error;
   }
 };
