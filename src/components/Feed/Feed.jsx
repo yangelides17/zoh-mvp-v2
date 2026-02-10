@@ -119,7 +119,13 @@ const Feed = () => {
     <div className="feed-container" ref={feedRef}>
       {/* Header */}
       <div className="feed-header">
-        <h1 className="feed-title">Fragment Feed</h1>
+        <div className="feed-branding">
+          <h1 className="feed-title">ZOH Feed</h1>
+          <div className="live-indicator">
+            <div className="live-dot"></div>
+            <span className="live-text">LIVE</span>
+          </div>
+        </div>
         <div className="feed-controls">
           <button onClick={refresh} className="refresh-button" title="Refresh feed (R)">
             ↻
