@@ -1,0 +1,434 @@
+/**
+ * Feed Styles - TikTok/Instagram Reels Style
+ *
+ * Full-screen vertical scroll feed with snap scrolling
+ */
+
+/* Feed Container - Full viewport with snap scrolling */
+.feed-container {
+  width: 100vw;
+  height: 100vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  background: #000;
+  position: relative;
+}
+
+/* Hide scrollbar but keep functionality */
+.feed-container::-webkit-scrollbar {
+  display: none;
+}
+
+.feed-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Feed Header - Fixed at top */
+.feed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feed-title {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.feed-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.refresh-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s;
+}
+
+.refresh-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(180deg);
+}
+
+.fragment-count {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+/* Feed Content */
+.feed-content {
+  padding-top: 60px;
+}
+
+/* Fragment Card - Full viewport height with snap */
+.fragment-card {
+  width: 100vw;
+  height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: #000;
+}
+
+.fragment-card-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.fragment-card-content:active {
+  transform: scale(0.98);
+}
+
+/* Fragment Image Wrapper */
+.fragment-image-wrapper {
+  max-width: 90%;
+  max-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fragment-image-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.fragment-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.3s;
+}
+
+.fragment-image-loading {
+  opacity: 0;
+}
+
+.fragment-image-loaded {
+  opacity: 1;
+}
+
+/* Loading Skeleton */
+.fragment-image-skeleton {
+  width: 600px;
+  height: 400px;
+  background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.loading-text {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+/* Placeholder for missing screenshots */
+.fragment-image-placeholder {
+  width: 600px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.placeholder-icon {
+  font-size: 64px;
+  opacity: 0.3;
+}
+
+.placeholder-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 18px;
+  margin: 0;
+}
+
+.placeholder-meta {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+  margin: 0;
+}
+
+.placeholder-domain {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Fragment Metadata */
+.fragment-metadata {
+  position: absolute;
+  bottom: 80px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.fragment-archetype-badge {
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-block;
+  width: fit-content;
+}
+
+.fragment-domain {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Click Hint */
+.fragment-hint {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.fragment-card-content:hover .fragment-hint {
+  opacity: 1;
+}
+
+.hint-icon {
+  font-size: 16px;
+}
+
+/* Loading States */
+.feed-loading,
+.feed-error,
+.feed-empty {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  color: #fff;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.feed-loading p {
+  margin-top: 20px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Loading More Indicator */
+.feed-loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.loading-spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* End of Feed */
+.feed-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.6);
+  gap: 15px;
+}
+
+/* Error State */
+.error-content,
+.empty-content {
+  text-align: center;
+  padding: 40px;
+  max-width: 500px;
+}
+
+.error-icon,
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.error-content h2,
+.empty-content h2 {
+  color: #fff;
+  margin: 0 0 10px 0;
+}
+
+.error-content p,
+.empty-content p {
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 20px 0;
+}
+
+.retry-button {
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.retry-button:hover {
+  background: #fff;
+  transform: scale(1.05);
+}
+
+/* Keyboard Shortcuts Hint */
+.keyboard-hints {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 90;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+
+.keyboard-hints:hover {
+  opacity: 1;
+}
+
+.hint-item {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .feed-header {
+    padding: 10px 15px;
+  }
+
+  .feed-title {
+    font-size: 18px;
+  }
+
+  .fragment-metadata {
+    bottom: 60px;
+    left: 15px;
+  }
+
+  .fragment-archetype-badge {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+
+  .fragment-domain {
+    font-size: 13px;
+  }
+
+  .fragment-hint {
+    display: none;
+  }
+
+  .keyboard-hints {
+    display: none;
+  }
+
+  .fragment-image-skeleton,
+  .fragment-image-placeholder {
+    width: 90vw;
+    height: 60vh;
+  }
+}
