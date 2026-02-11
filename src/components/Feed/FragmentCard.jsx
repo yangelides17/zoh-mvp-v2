@@ -2,14 +2,22 @@
  * FragmentCard Component
  *
  * Individual fragment card in the feed
- * Displays fragment screenshot and metadata
+ * Displays fragment screenshot or video embed and metadata
  */
 
 import React from 'react';
 import FragmentImage from './FragmentImage';
+import VideoEmbed from './VideoEmbed';
+import { parseVideoUrl } from '../../utils/videoParser';
 
 const FragmentCard = ({ fragment, index }) => {
-  const handleClick = () => {
+  const handleClick = (e) => {
+    // Prevent opening source URL if user clicked on video iframe
+    // This allows video controls to work without navigating away
+    if (e.target.tagName === 'IFRAME' || e.target.closest('.video-embed-container')) {
+      return;
+    }
+
     // Open source URL in new tab
     if (fragment.url) {
       window.open(fragment.url, '_blank', 'noopener,noreferrer');
@@ -25,17 +33,36 @@ const FragmentCard = ({ fragment, index }) => {
       .join(' ');
   };
 
+  // Parse video URL for video_player archetype
+  // Returns null if not a video or not a supported platform
+  const videoData = fragment.archetype === 'video_player'
+    ? parseVideoUrl(fragment.url)
+    : null;
+
   return (
-    <div className="fragment-card" data-index={index}>
+    <div
+      className={`fragment-card ${fragment.archetype}`}
+      data-index={index}
+      data-fragment-id={fragment.fragment_id}
+    >
       <div className="fragment-card-content" onClick={handleClick}>
-        {/* Fragment Screenshot */}
-        <div className="fragment-image-wrapper">
-          <FragmentImage
-            fragmentId={fragment.fragment_id}
-            archetype={fragment.archetype}
+        {/* Conditional rendering: VideoEmbed for videos, FragmentImage for others */}
+        {videoData ? (
+          <VideoEmbed
+            embedUrl={videoData.embedUrl}
+            platform={videoData.platform}
             domain={fragment.domain}
+            archetype={fragment.archetype}
           />
-        </div>
+        ) : (
+          <div className="fragment-image-wrapper">
+            <FragmentImage
+              fragmentId={fragment.fragment_id}
+              archetype={fragment.archetype}
+              domain={fragment.domain}
+            />
+          </div>
+        )}
 
         {/* Fragment Metadata */}
         <div className="fragment-metadata">
