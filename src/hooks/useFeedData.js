@@ -7,12 +7,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchFragments } from '../services/api';
 
+/**
+ * Generate a random seed for feed ordering
+ * Uses timestamp + random number for uniqueness across sessions
+ */
+const generateRandomSeed = () => {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+};
+
 export const useFeedData = () => {
   const [fragments, setFragments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState(null);
+  const [randomSeed, setRandomSeed] = useState(() => generateRandomSeed());
 
   // Active filters
   const [filters, setFilters] = useState({
@@ -28,7 +37,7 @@ export const useFeedData = () => {
     setError(null);
 
     try {
-      const data = await fetchFragments(20, null, filters.domains, filters.archetypes);
+      const data = await fetchFragments(20, null, filters.domains, filters.archetypes, randomSeed);
       setFragments(data.fragments || []);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
@@ -38,10 +47,11 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters.domains, filters.archetypes]);
+  }, [filters.domains, filters.archetypes, randomSeed]);
 
   /**
    * Load more fragments (for infinite scroll)
+   * Uses same randomSeed to maintain deterministic ordering
    */
   const loadMoreFragments = useCallback(async () => {
     if (!hasMore || loading) return;
@@ -50,7 +60,7 @@ export const useFeedData = () => {
     setError(null);
 
     try {
-      const data = await fetchFragments(20, cursor, filters.domains, filters.archetypes);
+      const data = await fetchFragments(20, cursor, filters.domains, filters.archetypes, randomSeed);
       setFragments(prev => [...prev, ...(data.fragments || [])]);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
@@ -60,24 +70,28 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
-  }, [cursor, hasMore, loading, filters.domains, filters.archetypes]);
+  }, [cursor, hasMore, loading, filters.domains, filters.archetypes, randomSeed]);
 
   /**
    * Apply new filters and reload feed
+   * Generates new random seed to re-randomize the feed
    */
   const applyFilters = useCallback((newFilters) => {
     setFilters(newFilters);
     setCursor(null);
     setHasMore(true);
+    setRandomSeed(generateRandomSeed()); // Re-randomize on filter change
     // Load initial fragments will be called via useEffect
   }, []);
 
   /**
    * Refresh feed (reload from beginning)
+   * Generates new random seed to re-randomize the feed
    */
   const refresh = useCallback(() => {
     setCursor(null);
     setHasMore(true);
+    setRandomSeed(generateRandomSeed()); // Re-randomize on refresh
     loadInitialFragments();
   }, [loadInitialFragments]);
 
