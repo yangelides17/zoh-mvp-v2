@@ -1,18 +1,19 @@
 /**
  * VideoEmbed Component
  *
- * Renders video iframes with lazy loading for YouTube and Vimeo embeds.
- * Uses IntersectionObserver to only load videos when they come into viewport,
- * optimizing performance for feeds with many videos.
+ * Renders video iframes with lazy loading and autoplay for YouTube and Vimeo embeds.
+ * Uses IntersectionObserver to load videos when near viewport and autoplay when centered.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './VideoEmbed.css';
 
 const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const containerRef = useRef(null);
+  const iframeRef = useRef(null);
 
   // Lazy load iframe using IntersectionObserver
   // Only loads when video container is within 500px of viewport
@@ -39,6 +40,100 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
       }
     };
   }, []);
+
+  // Memoized play/pause/unmute functions to avoid infinite loops in useEffect
+  const playVideo = useCallback(() => {
+    if (!iframeRef.current) return;
+
+    if (platform === 'youtube') {
+      // YouTube iframe API: unmute, seek to beginning, then play
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'unMute', args: '' }),
+        '*'
+      );
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'seekTo', args: [0, true] }),
+        '*'
+      );
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
+        '*'
+      );
+    } else if (platform === 'vimeo') {
+      // Vimeo Player API: set volume to 1 (unmuted), seek to 0, then play
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ method: 'setVolume', value: 1 }),
+        '*'
+      );
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ method: 'setCurrentTime', value: 0 }),
+        '*'
+      );
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ method: 'play' }),
+        '*'
+      );
+    }
+    setIsPlaying(true);
+  }, [platform]);
+
+  const pauseVideo = useCallback(() => {
+    if (!iframeRef.current) return;
+
+    if (platform === 'youtube') {
+      // YouTube iframe API: pause and mute
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }),
+        '*'
+      );
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'mute', args: '' }),
+        '*'
+      );
+    } else if (platform === 'vimeo') {
+      // Vimeo Player API: pause and mute
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ method: 'pause' }),
+        '*'
+      );
+      iframeRef.current.contentWindow?.postMessage(
+        JSON.stringify({ method: 'setVolume', value: 0 }),
+        '*'
+      );
+    }
+    setIsPlaying(false);
+  }, [platform]);
+
+  // Autoplay/pause based on visibility (TikTok-style)
+  // Play when >50% visible, pause when less visible
+  useEffect(() => {
+    if (!shouldLoad || !iframeRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const shouldPlay = entry.isIntersecting && entry.intersectionRatio > 0.5;
+
+        if (shouldPlay && !isPlaying) {
+          playVideo();
+        } else if (!shouldPlay && isPlaying) {
+          pauseVideo();
+        }
+      },
+      {
+        threshold: [0, 0.5, 1] // Trigger at 0%, 50%, and 100% visibility
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, [shouldLoad, isPlaying, playVideo, pauseVideo]);
 
   const handleError = () => {
     setHasError(true);
@@ -75,6 +170,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
       ) : (
         // Actual video iframe
         <iframe
+          ref={iframeRef}
           src={embedUrl}
           className="video-embed-iframe"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

@@ -37,8 +37,9 @@ export const parseVideoUrl = (url) => {
       platform: 'youtube',
       videoId: videoId,
       // Use youtube-nocookie.com for better privacy
-      // Parameters: rel=0 (no related videos), modestbranding=1 (minimal branding), enablejsapi=1 (JS API)
-      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&enablejsapi=1`,
+      // Parameters: autoplay=0 (controlled via JS API), rel=0 (no related videos),
+      // modestbranding=1 (minimal branding), enablejsapi=1 (JS API for play/pause/mute control)
+      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1&enablejsapi=1`,
       thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
     };
   }
@@ -52,8 +53,9 @@ export const parseVideoUrl = (url) => {
     return {
       platform: 'vimeo',
       videoId: videoId,
-      // Parameters: title=0, byline=0, portrait=0 (minimal UI)
-      embedUrl: `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0`,
+      // Parameters: autoplay=0 (controlled via JS API),
+      // title=0, byline=0, portrait=0 (minimal UI), background=0 (not background mode)
+      embedUrl: `https://player.vimeo.com/video/${videoId}?autoplay=0&title=0&byline=0&portrait=0&background=0`,
       thumbnailUrl: null // Vimeo requires API for thumbnails
     };
   }
