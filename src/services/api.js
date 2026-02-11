@@ -22,9 +22,10 @@ const api = axios.create({
  * @param {string|null} cursor - Cursor for pagination (fragment ID)
  * @param {Array<string>} domains - Filter by domains
  * @param {Array<string>} archetypes - Filter by archetypes
+ * @param {string|null} randomSeed - Random seed for deterministic pseudo-random ordering
  * @returns {Promise<{fragments: Array, next_cursor: string|null, has_more: boolean}>}
  */
-export const fetchFragments = async (limit = 20, cursor = null, domains = [], archetypes = []) => {
+export const fetchFragments = async (limit = 20, cursor = null, domains = [], archetypes = [], randomSeed = null) => {
   try {
     const params = { limit };
     if (cursor) {
@@ -35,6 +36,9 @@ export const fetchFragments = async (limit = 20, cursor = null, domains = [], ar
     }
     if (archetypes && archetypes.length > 0) {
       params.archetypes = archetypes.join(',');
+    }
+    if (randomSeed) {
+      params.random_seed = randomSeed;
     }
 
     const response = await api.get('/api/feed/fragments', { params });

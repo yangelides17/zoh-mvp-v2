@@ -25,7 +25,7 @@ const FragmentImage = ({ fragmentId, archetype, domain }) => {
         });
       },
       {
-        rootMargin: '200px' // Start loading 200px before entering viewport
+        rootMargin: '3000px' // Start loading 3000px before entering viewport (3-4 fragments ahead)
       }
     );
 
