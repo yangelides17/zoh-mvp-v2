@@ -573,3 +573,33 @@
   padding-bottom: 0; /* Override default aspect ratio in feed context */
   aspect-ratio: 16 / 9; /* Modern CSS aspect ratio */
 }
+
+/* Article-specific styles - interactive content, not clickable cards */
+.fragment-card.article .fragment-card-content,
+.fragment-card.article_media .fragment-card-content,
+.fragment-card.page_content .fragment-card-content,
+.fragment-card.page_media .fragment-card-content,
+.fragment-card.code_block .fragment-card-content,
+.fragment-card.social_post .fragment-card-content,
+.fragment-card.comment .fragment-card-content,
+.fragment-card.feed_item .fragment-card-content,
+.fragment-card.product_card .fragment-card-content {
+  cursor: default;
+}
+
+.fragment-card.article .fragment-metadata,
+.fragment-card.article_media .fragment-metadata,
+.fragment-card.page_content .fragment-metadata,
+.fragment-card.code_block .fragment-metadata,
+.fragment-card.product_card .fragment-metadata {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.fragment-card.article .fragment-metadata:hover,
+.fragment-card.article_media .fragment-metadata:hover,
+.fragment-card.page_content .fragment-metadata:hover,
+.fragment-card.code_block .fragment-metadata:hover,
+.fragment-card.product_card .fragment-metadata:hover {
+  opacity: 0.9;
+}

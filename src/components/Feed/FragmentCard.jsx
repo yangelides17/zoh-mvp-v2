@@ -2,19 +2,24 @@
  * FragmentCard Component
  *
  * Individual fragment card in the feed
- * Displays fragment screenshot or video embed and metadata
+ * Displays fragment as video embed, interactive HTML article, or screenshot
  */
 
 import React from 'react';
 import FragmentImage from './FragmentImage';
 import VideoEmbed from './VideoEmbed';
+import ArticleEmbed, { isArticleArchetype } from './ArticleEmbed';
 import { parseVideoUrl } from '../../utils/videoParser';
 
 const FragmentCard = ({ fragment, index }) => {
   const handleClick = (e) => {
     // Prevent opening source URL if user clicked on video iframe
-    // This allows video controls to work without navigating away
     if (e.target.tagName === 'IFRAME' || e.target.closest('.video-embed-container')) {
+      return;
+    }
+
+    // Prevent opening source URL if user is interacting with article content
+    if (e.target.closest('.article-embed-container')) {
       return;
     }
 
@@ -34,10 +39,12 @@ const FragmentCard = ({ fragment, index }) => {
   };
 
   // Parse video URL for video_player archetype
-  // Returns null if not a video or not a supported platform
   const videoData = fragment.archetype === 'video_player'
     ? parseVideoUrl(fragment.url)
     : null;
+
+  // Check if this is an article-type archetype with HTML available
+  const isArticle = isArticleArchetype(fragment.archetype) && fragment.has_html;
 
   return (
     <div
@@ -46,13 +53,21 @@ const FragmentCard = ({ fragment, index }) => {
       data-fragment-id={fragment.fragment_id}
     >
       <div className="fragment-card-content" onClick={handleClick}>
-        {/* Conditional rendering: VideoEmbed for videos, FragmentImage for others */}
+        {/* Three-way routing: VideoEmbed → ArticleEmbed → FragmentImage */}
         {videoData ? (
           <VideoEmbed
             embedUrl={videoData.embedUrl}
             platform={videoData.platform}
             domain={fragment.domain}
             archetype={fragment.archetype}
+          />
+        ) : isArticle ? (
+          <ArticleEmbed
+            fragmentId={fragment.fragment_id}
+            archetype={fragment.archetype}
+            domain={fragment.domain}
+            url={fragment.url}
+            hasHtml={fragment.has_html}
           />
         ) : (
           <div className="fragment-image-wrapper">
