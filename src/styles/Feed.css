@@ -156,6 +156,24 @@
   color: #fff;
 }
 
+.curated-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.curated-toggle input[type="checkbox"] {
+  accent-color: #6f42c1;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 .filter-bar-loading {
   color: rgba(255, 255, 255, 0.5);
   font-size: 13px;
