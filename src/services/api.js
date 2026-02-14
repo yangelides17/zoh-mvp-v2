@@ -59,6 +59,25 @@ export const getFragmentScreenshotUrl = (fragmentId) => {
 };
 
 /**
+ * Fetch fragment HTML for interactive rendering
+ * @param {string} fragmentId - Fragment UUID
+ * @returns {Promise<{html: string, styles: string[], stylesheet_urls: string[], base_url: string}>}
+ * @throws {Error} If HTML not available (404) or server error
+ */
+export const fetchFragmentHtml = async (fragmentId) => {
+  try {
+    const response = await api.get(`/api/feed/fragment/${fragmentId}/html`);
+    return response.data;
+  } catch (error) {
+    // Don't log 404s as errors -- HTML not available is expected for many fragments
+    if (error.response?.status !== 404) {
+      console.error('Error fetching fragment HTML:', error);
+    }
+    throw error;
+  }
+};
+
+/**
  * Fetch fragment metadata
  * @param {string} fragmentId - Fragment UUID
  * @returns {Promise<Object>} Fragment metadata
