@@ -15,6 +15,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   // Temporary selections (before Apply)
   const [tempDomains, setTempDomains] = useState(currentFilters.domains || []);
   const [tempArchetypes, setTempArchetypes] = useState(currentFilters.archetypes || []);
+  const [tempCurated, setTempCurated] = useState(currentFilters.curated || false);
 
   const [loading, setLoading] = useState(true);
 
@@ -58,6 +59,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   useEffect(() => {
     setTempDomains(currentFilters.domains || []);
     setTempArchetypes(currentFilters.archetypes || []);
+    setTempCurated(currentFilters.curated || false);
   }, [currentFilters]);
 
   // Format archetype name (snake_case to Title Case)
@@ -75,14 +77,16 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
                           JSON.stringify((currentFilters.domains || []).sort());
     const archetypesChanged = JSON.stringify(tempArchetypes.sort()) !==
                              JSON.stringify((currentFilters.archetypes || []).sort());
-    return domainsChanged || archetypesChanged;
+    const curatedChanged = tempCurated !== (currentFilters.curated || false);
+    return domainsChanged || archetypesChanged || curatedChanged;
   };
 
   // Apply filters
   const handleApply = () => {
     onApplyFilters({
       domains: tempDomains,
-      archetypes: tempArchetypes
+      archetypes: tempArchetypes,
+      curated: tempCurated
     });
   };
 
@@ -90,14 +94,16 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   const handleClearAll = () => {
     setTempDomains([]);
     setTempArchetypes([]);
+    setTempCurated(false);
     onApplyFilters({
       domains: [],
-      archetypes: []
+      archetypes: [],
+      curated: false
     });
   };
 
   // Check if any filters are active
-  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0;
+  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0 || tempCurated;
 
   if (loading) {
     return (
@@ -125,6 +131,14 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
           onChange={setTempArchetypes}
           icon="▼"
         />
+        <label className="curated-toggle">
+          <input
+            type="checkbox"
+            checked={tempCurated}
+            onChange={(e) => setTempCurated(e.target.checked)}
+          />
+          <span>Curated Only</span>
+        </label>
       </div>
 
       <div className="filter-actions">

@@ -26,7 +26,8 @@ export const useFeedData = () => {
   // Active filters
   const [filters, setFilters] = useState({
     domains: [],
-    archetypes: []
+    archetypes: [],
+    curated: false
   });
 
   /**
@@ -37,7 +38,7 @@ export const useFeedData = () => {
     setError(null);
 
     try {
-      const data = await fetchFragments(20, null, filters.domains, filters.archetypes, randomSeed);
+      const data = await fetchFragments(20, null, filters.domains, filters.archetypes, randomSeed, filters.curated);
       setFragments(data.fragments || []);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
@@ -47,7 +48,7 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters.domains, filters.archetypes, randomSeed]);
+  }, [filters.domains, filters.archetypes, filters.curated, randomSeed]);
 
   /**
    * Load more fragments (for infinite scroll)
@@ -60,7 +61,7 @@ export const useFeedData = () => {
     setError(null);
 
     try {
-      const data = await fetchFragments(20, cursor, filters.domains, filters.archetypes, randomSeed);
+      const data = await fetchFragments(20, cursor, filters.domains, filters.archetypes, randomSeed, filters.curated);
       setFragments(prev => [...prev, ...(data.fragments || [])]);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
@@ -70,7 +71,7 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
-  }, [cursor, hasMore, loading, filters.domains, filters.archetypes, randomSeed]);
+  }, [cursor, hasMore, loading, filters.domains, filters.archetypes, filters.curated, randomSeed]);
 
   /**
    * Apply new filters and reload feed
