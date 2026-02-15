@@ -15,6 +15,14 @@
   overflow: hidden;
 }
 
+/* Spotify embed — compact audio player instead of 16:9 video */
+.video-embed-container.spotify {
+  padding-bottom: 0;
+  height: 232px;
+  background: #121212;
+  border-radius: 12px;
+}
+
 /* Video iframe - fills container */
 .video-embed-iframe {
   position: absolute;

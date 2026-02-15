@@ -45,6 +45,9 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
   const playVideo = useCallback(() => {
     if (!iframeRef.current) return;
 
+    // Spotify: no autoplay control — their API requires an SDK and auto-playing audio is unwanted
+    if (platform === 'spotify') return;
+
     if (platform === 'youtube') {
       // YouTube iframe API: unmute, seek to beginning, then play
       iframeRef.current.contentWindow?.postMessage(
@@ -150,7 +153,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
   }
 
   return (
-    <div ref={containerRef} className="video-embed-container">
+    <div ref={containerRef} className={`video-embed-container ${platform}`}>
       {!shouldLoad ? (
         // Placeholder shown before video loads
         <div className="video-placeholder">

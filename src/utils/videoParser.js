@@ -1,24 +1,21 @@
 /**
- * Video URL Parser Utility
+ * Media URL Parser Utility
  *
- * Parses video URLs from supported platforms (YouTube, Vimeo) and generates
+ * Parses media URLs from supported platforms (YouTube, Vimeo, Spotify) and generates
  * embed URLs for iframe rendering in the feed.
  */
 
 /**
- * Parse video URLs and generate embed URLs for supported platforms
- * @param {string} url - The source page URL (e.g., YouTube watch URL)
- * @returns {object|null} Video data object or null if not a supported platform
+ * Parse media URLs and generate embed URLs for supported platforms
+ * @param {string} url - The source page URL (e.g., YouTube watch URL, Spotify episode URL)
+ * @returns {object|null} Media data object or null if not a supported platform
  *
  * @example
  * parseVideoUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
- * // Returns:
- * // {
- * //   platform: 'youtube',
- * //   videoId: 'dQw4w9WgXcQ',
- * //   embedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?...',
- * //   thumbnailUrl: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg'
- * // }
+ * // Returns: { platform: 'youtube', videoId: '...', embedUrl: '...', thumbnailUrl: '...' }
+ *
+ * parseVideoUrl('https://open.spotify.com/episode/7makk4oTQel546B0PZlDM5')
+ * // Returns: { platform: 'spotify', videoId: '...', embedUrl: '...', thumbnailUrl: null }
  */
 export const parseVideoUrl = (url) => {
   if (!url || typeof url !== 'string') {
@@ -60,13 +57,31 @@ export const parseVideoUrl = (url) => {
     };
   }
 
+  // Spotify patterns
+  // Matches: open.spotify.com/episode/ID, open.spotify.com/track/ID,
+  //          open.spotify.com/playlist/ID, open.spotify.com/album/ID, etc.
+  const spotifyMatch = url.match(
+    /open\.spotify\.com\/(episode|track|playlist|album|show|artist)\/([a-zA-Z0-9]+)/
+  );
+
+  if (spotifyMatch) {
+    const contentType = spotifyMatch[1];
+    const contentId = spotifyMatch[2];
+    return {
+      platform: 'spotify',
+      videoId: contentId,
+      embedUrl: `https://open.spotify.com/embed/${contentType}/${contentId}?utm_source=generator`,
+      thumbnailUrl: null
+    };
+  }
+
   return null;
 };
 
 /**
- * Check if a URL is from a supported video platform
+ * Check if a URL is from a supported media platform
  * @param {string} url - The URL to check
- * @returns {boolean} True if URL is from YouTube or Vimeo
+ * @returns {boolean} True if URL is from YouTube, Vimeo, or Spotify
  *
  * @example
  * isSupportedVideoUrl('https://www.youtube.com/watch?v=abc123') // true
