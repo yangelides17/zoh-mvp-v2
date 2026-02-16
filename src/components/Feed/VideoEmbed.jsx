@@ -1,22 +1,40 @@
 /**
  * VideoEmbed Component
  *
- * Renders video iframes with lazy loading and autoplay for YouTube and Vimeo embeds.
- * Uses IntersectionObserver to load videos when near viewport and autoplay when centered.
+ * Renders media embeds with lazy loading and autoplay for YouTube, Vimeo, and Spotify.
+ * Uses IntersectionObserver to load media when near viewport and autoplay when centered.
+ *
+ * Spotify uses the iFrame API SDK via a shared controller pool. The controller moves
+ * between embeds as the user scrolls — only the fully-visible embed shows the widget.
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { claimController, releaseController } from '../../utils/spotifyControllerPool';
 import './VideoEmbed.css';
+
+/**
+ * Extract spotify URI from embed URL.
+ * embedUrl: https://open.spotify.com/embed/{type}/{id}?utm_source=generator
+ * returns:  spotify:{type}:{id}
+ */
+function getSpotifyUri(embedUrl) {
+  const match = embedUrl?.match(
+    /embed\/(episode|track|playlist|album|show|artist)\/([a-zA-Z0-9]+)/
+  );
+  return match ? `spotify:${match[1]}:${match[2]}` : null;
+}
 
 const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasController, setHasController] = useState(false);
   const containerRef = useRef(null);
   const iframeRef = useRef(null);
+  const spotifyContainerRef = useRef(null);
+  const poolEntryRef = useRef(null);
 
-  // Lazy load iframe using IntersectionObserver
-  // Only loads when video container is within 500px of viewport
+  // Lazy load: render content when within 500px of viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -25,8 +43,8 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
         }
       },
       {
-        rootMargin: '500px', // Load when within 500px of viewport
-        threshold: 0.01 // Trigger as soon as 1% is visible
+        rootMargin: '500px',
+        threshold: 0.01
       }
     );
 
@@ -34,22 +52,63 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
       observer.observe(containerRef.current);
     }
 
-    return () => {
-      if (observer) {
-        observer.disconnect();
-      }
-    };
+    return () => observer.disconnect();
   }, []);
 
-  // Memoized play/pause/unmute functions to avoid infinite loops in useEffect
+  // Spotify: claim/release controller based on full visibility
+  useEffect(() => {
+    if (platform !== 'spotify' || !shouldLoad) return;
+
+    const spotifyUri = getSpotifyUri(embedUrl);
+    if (!spotifyUri) return;
+
+    let cancelled = false;
+    let claimPending = false;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isFullyVisible = entry.isIntersecting && entry.intersectionRatio >= 0.99;
+
+        if (isFullyVisible && !poolEntryRef.current && !claimPending) {
+          claimPending = true;
+          const container = spotifyContainerRef.current;
+          if (!container) { claimPending = false; return; }
+
+          claimController(container, spotifyUri).then((entry) => {
+            claimPending = false;
+            if (cancelled || !entry) return;
+            poolEntryRef.current = entry;
+            setHasController(true);
+          });
+        } else if (!isFullyVisible && poolEntryRef.current) {
+          releaseController(poolEntryRef.current);
+          poolEntryRef.current = null;
+          setHasController(false);
+        }
+      },
+      { threshold: [0, 0.99] }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      if (poolEntryRef.current) {
+        releaseController(poolEntryRef.current);
+        poolEntryRef.current = null;
+      }
+    };
+  }, [platform, shouldLoad, embedUrl]);
+
+  // YouTube/Vimeo: play (Spotify handled separately)
   const playVideo = useCallback(() => {
     if (!iframeRef.current) return;
-
-    // Spotify: no autoplay control — their API requires an SDK and auto-playing audio is unwanted
     if (platform === 'spotify') return;
 
     if (platform === 'youtube') {
-      // YouTube iframe API: unmute, seek to beginning, then play
       iframeRef.current.contentWindow?.postMessage(
         JSON.stringify({ event: 'command', func: 'unMute', args: '' }),
         '*'
@@ -63,7 +122,6 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
         '*'
       );
     } else if (platform === 'vimeo') {
-      // Vimeo Player API: set volume to 1 (unmuted), seek to 0, then play
       iframeRef.current.contentWindow?.postMessage(
         JSON.stringify({ method: 'setVolume', value: 1 }),
         '*'
@@ -80,11 +138,11 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
     setIsPlaying(true);
   }, [platform]);
 
+  // YouTube/Vimeo: pause (Spotify handled separately)
   const pauseVideo = useCallback(() => {
     if (!iframeRef.current) return;
 
     if (platform === 'youtube') {
-      // YouTube iframe API: pause and mute
       iframeRef.current.contentWindow?.postMessage(
         JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }),
         '*'
@@ -94,7 +152,6 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
         '*'
       );
     } else if (platform === 'vimeo') {
-      // Vimeo Player API: pause and mute
       iframeRef.current.contentWindow?.postMessage(
         JSON.stringify({ method: 'pause' }),
         '*'
@@ -107,10 +164,10 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
     setIsPlaying(false);
   }, [platform]);
 
-  // Autoplay/pause based on visibility (TikTok-style)
-  // Play when >50% visible, pause when less visible
+  // YouTube/Vimeo: autoplay/pause based on visibility
   useEffect(() => {
     if (!shouldLoad || !iframeRef.current) return;
+    if (platform === 'spotify') return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -123,7 +180,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
         }
       },
       {
-        threshold: [0, 0.5, 1] // Trigger at 0%, 50%, and 100% visibility
+        threshold: [0, 0.5, 1]
       }
     );
 
@@ -131,18 +188,13 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
       observer.observe(containerRef.current);
     }
 
-    return () => {
-      if (observer) {
-        observer.disconnect();
-      }
-    };
-  }, [shouldLoad, isPlaying, playVideo, pauseVideo]);
+    return () => observer.disconnect();
+  }, [shouldLoad, isPlaying, playVideo, pauseVideo, platform]);
 
   const handleError = () => {
     setHasError(true);
   };
 
-  // Error state: invalid embed URL
   if (!embedUrl) {
     return (
       <div className="video-error">
@@ -155,7 +207,6 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
   return (
     <div ref={containerRef} className={`video-embed-container ${platform}`}>
       {!shouldLoad ? (
-        // Placeholder shown before video loads
         <div className="video-placeholder">
           <div className="video-loading-skeleton">
             <div className="play-icon">▶</div>
@@ -163,15 +214,22 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
           </div>
         </div>
       ) : hasError ? (
-        // Error state: video failed to load
         <div className="video-error">
-          <p>Unable to load video</p>
+          <p>Unable to load {platform === 'spotify' ? 'audio' : 'video'}</p>
           <p className="video-platform-info">
-            {platform} video from {domain}
+            {platform} from {domain}
           </p>
         </div>
+      ) : platform === 'spotify' ? (
+        // Spotify: SDK controller iframe gets reparented into this div when claimed
+        <div ref={spotifyContainerRef} className="video-embed-iframe">
+          {!hasController && (
+            <div className="spotify-placeholder">
+              <div className="platform-badge">spotify</div>
+            </div>
+          )}
+        </div>
       ) : (
-        // Actual video iframe
         <iframe
           ref={iframeRef}
           src={embedUrl}
