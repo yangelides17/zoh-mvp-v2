@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { claimController, releaseController } from '../../utils/spotifyControllerPool';
+import { claimController, releaseController, updateRole } from '../../utils/spotifyControllerPool';
 import './VideoEmbed.css';
 
 /**
@@ -55,7 +55,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
     return () => observer.disconnect();
   }, []);
 
-  // Spotify: claim/release controller based on full visibility
+  // Spotify: pre-load zone — claim controller when entering 500px zone, release when leaving
   useEffect(() => {
     if (platform !== 'spotify' || !shouldLoad) return;
 
@@ -67,26 +67,26 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const isFullyVisible = entry.isIntersecting && entry.intersectionRatio >= 0.99;
+        const inZone = entry.isIntersecting;
 
-        if (isFullyVisible && !poolEntryRef.current && !claimPending) {
+        if (inZone && !poolEntryRef.current && !claimPending) {
           claimPending = true;
           const container = spotifyContainerRef.current;
           if (!container) { claimPending = false; return; }
 
-          claimController(container, spotifyUri).then((entry) => {
+          claimController(container, spotifyUri, 'preload').then((poolEntry) => {
             claimPending = false;
-            if (cancelled || !entry) return;
-            poolEntryRef.current = entry;
+            if (cancelled || !poolEntry) return;
+            poolEntryRef.current = poolEntry;
             setHasController(true);
           });
-        } else if (!isFullyVisible && poolEntryRef.current) {
+        } else if (!inZone && poolEntryRef.current) {
           releaseController(poolEntryRef.current);
           poolEntryRef.current = null;
           setHasController(false);
         }
       },
-      { threshold: [0, 0.99] }
+      { rootMargin: '500px', threshold: 0.01 }
     );
 
     if (containerRef.current) {
@@ -102,6 +102,30 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
       }
     };
   }, [platform, shouldLoad, embedUrl]);
+
+  // Spotify: visibility — upgrade to 'visible' when fully on screen, downgrade to 'recent' when not
+  useEffect(() => {
+    if (platform !== 'spotify' || !shouldLoad) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isFullyVisible = entry.isIntersecting && entry.intersectionRatio >= 0.99;
+
+        if (isFullyVisible && poolEntryRef.current) {
+          updateRole(poolEntryRef.current, 'visible');
+        } else if (!isFullyVisible && poolEntryRef.current && poolEntryRef.current.role === 'visible') {
+          updateRole(poolEntryRef.current, 'recent');
+        }
+      },
+      { threshold: [0, 0.99] }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [platform, shouldLoad]);
 
   // YouTube/Vimeo: play (Spotify handled separately)
   const playVideo = useCallback(() => {

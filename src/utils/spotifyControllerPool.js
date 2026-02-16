@@ -1,28 +1,31 @@
 /**
  * Spotify Controller Pool
  *
- * Manages a pool of reusable Spotify EmbedControllers. Controllers are created
- * lazily up to MAX_POOL_SIZE and never destroyed — they persist for the lifetime
- * of the page. When not claimed by a VideoEmbed, the controller's iframe is
- * parked in a hidden off-screen container.
+ * Manages a pool of reusable Spotify EmbedControllers (max 3). Controllers are
+ * created lazily and never destroyed — they persist for the lifetime of the page.
  *
- * Note: The Spotify SDK *replaces* the DOM element passed to createController
- * with the iframe (per the docs: "DOM element that you'd like replaced by the
- * Embed"). So we pass a disposable div and then grab the iframe that replaced it.
+ * Each entry has a role:
+ *   'visible'  — the fragment currently on screen (highest priority)
+ *   'preload'  — a nearby fragment being pre-loaded (medium priority)
+ *   'recent'   — a just-left fragment kept loaded for instant scroll-back (lowest)
+ *   null       — parked off-screen, available for reuse
+ *
+ * The Spotify SDK *replaces* the DOM element passed to createController with an
+ * iframe. With multiple controllers we snapshot existing iframes before creation
+ * to detect the new one.
  *
  * Usage:
- *   const entry = await claimController(containerEl, spotifyUri);
- *   // entry.controller is the EmbedController
- *   // When done: releaseController(entry)
- *
- * Bump MAX_POOL_SIZE to 2-3 later to pre-load nearby embeds.
+ *   const entry = await claimController(containerEl, spotifyUri, 'preload');
+ *   updateRole(entry, 'visible');   // upgrade when fully visible
+ *   updateRole(entry, 'recent');    // downgrade when scrolled away
+ *   releaseController(entry);       // fully release when out of zone
  */
 
 import spotifyIframeApiReady from './spotifyIframeApi';
 
-const MAX_POOL_SIZE = 1;
+const MAX_POOL_SIZE = 3;
 
-// Pool entries: { controller, iframe, uri, claimed }
+// Pool entries: { controller, iframe, uri, role, claimed }
 const pool = [];
 
 // Hidden container to keep unclaimed controller iframes alive in the DOM
@@ -39,21 +42,43 @@ function getParkingContainer() {
 }
 
 /**
+ * Steal priority: recent first, then preload, never visible.
+ */
+function findStealable(role) {
+  // For visible/preload claims, steal from recent first
+  let victim = pool.find((e) => e.claimed && e.role === 'recent');
+  if (victim) return victim;
+
+  // Then steal from preload (but only if the new claim is visible)
+  if (role === 'visible') {
+    victim = pool.find((e) => e.claimed && e.role === 'preload');
+    if (victim) return victim;
+  }
+
+  return null;
+}
+
+/**
  * Claim a controller for the given container element and Spotify URI.
  *
- * - If a free (unclaimed) controller exists, reuses it.
- * - If no free controller and pool isn't full, creates a new one.
- * - If pool is full and all claimed, steals the first claimed entry (FIFO).
+ * role: 'visible' | 'preload' | 'recent'
  *
- * Returns a pool entry: { controller, iframe, uri, claimed }
+ * - If a free (parked) controller exists, reuses it.
+ * - If pool isn't full, creates a new one.
+ * - If pool is full, steals based on priority (recent > preload > never visible).
+ *
+ * Returns a pool entry or null if no controller could be obtained.
  */
-export async function claimController(containerEl, uri) {
+export async function claimController(containerEl, uri, role = 'preload') {
   // Try to find a free (unclaimed) controller
   let entry = pool.find((e) => !e.claimed);
 
   if (!entry && pool.length < MAX_POOL_SIZE) {
     const IFrameAPI = await spotifyIframeApiReady;
     const parking = getParkingContainer();
+
+    // Snapshot existing iframes so we can detect the new one
+    const existingIframes = new Set(parking.querySelectorAll('iframe'));
 
     // Create a disposable div for the SDK to replace with the iframe
     const placeholder = document.createElement('div');
@@ -64,9 +89,14 @@ export async function claimController(containerEl, uri) {
         placeholder,
         { uri, width: '100%', height: 232 },
         (controller) => {
-          // The SDK replaced `placeholder` with an iframe in the same parent.
-          // Find it — it's the iframe the SDK just created in parking.
-          const iframe = parking.querySelector('iframe');
+          // Find the newly created iframe (not in our snapshot)
+          let iframe = null;
+          for (const el of parking.querySelectorAll('iframe')) {
+            if (!existingIframes.has(el)) {
+              iframe = el;
+              break;
+            }
+          }
 
           if (!iframe) {
             console.warn('[Spotify Pool] SDK did not create an iframe');
@@ -76,7 +106,7 @@ export async function claimController(containerEl, uri) {
 
           iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:12px;';
 
-          const newEntry = { controller, iframe, uri, claimed: false };
+          const newEntry = { controller, iframe, uri, role: null, claimed: false };
           pool.push(newEntry);
           console.log('[Spotify Pool] Controller created, pool size:', pool.length);
           resolve(newEntry);
@@ -86,15 +116,17 @@ export async function claimController(containerEl, uri) {
   }
 
   if (!entry) {
-    // Pool full, all claimed — steal from the first claimed entry
-    entry = pool.find((e) => e.claimed);
+    // Pool full, try to steal
+    entry = findStealable(role);
     if (!entry) return null;
     // Park the stolen entry's iframe
     getParkingContainer().appendChild(entry.iframe);
+    console.log('[Spotify Pool] Stole controller from role:', entry.role);
   }
 
   // Reparent the iframe into the target container
   entry.claimed = true;
+  entry.role = role;
   containerEl.appendChild(entry.iframe);
 
   // Switch content if URI changed
@@ -108,11 +140,20 @@ export async function claimController(containerEl, uri) {
 }
 
 /**
+ * Update the role of an existing pool entry (e.g. preload → visible → recent).
+ */
+export function updateRole(entry, newRole) {
+  if (!entry) return;
+  entry.role = newRole;
+}
+
+/**
  * Release a controller back to the pool. Parks the iframe off-screen.
  */
 export function releaseController(entry) {
   if (!entry) return;
   entry.claimed = false;
+  entry.role = null;
   if (entry.iframe) {
     getParkingContainer().appendChild(entry.iframe);
   }
