@@ -86,7 +86,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
           setHasController(false);
         }
       },
-      { rootMargin: '500px', threshold: 0.01 }
+      { rootMargin: '200%', threshold: 0.01 }
     );
 
     if (containerRef.current) {
