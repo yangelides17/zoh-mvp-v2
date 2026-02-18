@@ -47,7 +47,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
         }
       },
       {
-        rootMargin: '500px',
+        rootMargin: '1500px',
         threshold: 0.01
       }
     );
@@ -239,7 +239,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
         isPlayerReadyRef.current = true;
         tryAutoplay();
       }
-    }, 1500);
+    }, 500);
   }, [tryAutoplay]);
 
   // Reset readiness when embedUrl changes
@@ -336,7 +336,6 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
           className="video-embed-iframe"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
-          loading="lazy"
           frameBorder="0"
           title={`${platform} video from ${domain} - ${archetype}`}
           onLoad={handleIframeLoad}
