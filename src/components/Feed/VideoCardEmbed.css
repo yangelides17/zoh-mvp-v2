@@ -1,0 +1,52 @@
+/**
+ * VideoCardEmbed Component Styles
+ *
+ * Container and loading placeholder for video_card embed rendering.
+ * The actual embed styles come from VideoEmbed.css.
+ */
+
+.video-card-embed-container {
+  position: relative;
+  width: 80vw;
+  max-width: 90%;
+  max-height: 80vh;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Reuse the video-loading-skeleton from VideoEmbed */
+.video-card-placeholder .video-loading-skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+  background-size: 200% 100%;
+  animation: video-card-skeleton-pulse 1.5s ease-in-out infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 12px;
+}
+
+@keyframes video-card-skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .video-card-embed-container {
+    width: 95vw;
+  }
+}

@@ -8,6 +8,7 @@
 import React from 'react';
 import FragmentImage from './FragmentImage';
 import VideoEmbed from './VideoEmbed';
+import VideoCardEmbed from './VideoCardEmbed';
 import ArticleEmbed, { isArticleArchetype } from './ArticleEmbed';
 import { parseVideoUrl } from '../../utils/videoParser';
 
@@ -20,6 +21,11 @@ const FragmentCard = ({ fragment, index }) => {
 
     // Prevent opening source URL if user is interacting with article content
     if (e.target.closest('.article-embed-container')) {
+      return;
+    }
+
+    // Prevent opening source URL if user clicked on video card embed
+    if (e.target.closest('.video-card-embed-container')) {
       return;
     }
 
@@ -43,6 +49,10 @@ const FragmentCard = ({ fragment, index }) => {
     ? parseVideoUrl(fragment.url)
     : null;
 
+  // Check if this is a video_card with HTML or cached destination URL
+  const isVideoCard = fragment.archetype === 'video_card'
+    && (fragment.has_html || fragment.destination_url);
+
   // Check if this is an article-type archetype with HTML available
   const isArticle = isArticleArchetype(fragment.archetype) && fragment.has_html;
 
@@ -53,13 +63,20 @@ const FragmentCard = ({ fragment, index }) => {
       data-fragment-id={fragment.fragment_id}
     >
       <div className="fragment-card-content" onClick={handleClick}>
-        {/* Three-way routing: VideoEmbed → ArticleEmbed → FragmentImage */}
+        {/* Four-way routing: VideoEmbed → VideoCardEmbed → ArticleEmbed → FragmentImage */}
         {videoData ? (
           <VideoEmbed
             embedUrl={videoData.embedUrl}
             platform={videoData.platform}
             domain={fragment.domain}
             archetype={fragment.archetype}
+          />
+        ) : isVideoCard ? (
+          <VideoCardEmbed
+            fragmentId={fragment.fragment_id}
+            archetype={fragment.archetype}
+            domain={fragment.domain}
+            destinationUrl={fragment.destination_url}
           />
         ) : isArticle ? (
           <ArticleEmbed
