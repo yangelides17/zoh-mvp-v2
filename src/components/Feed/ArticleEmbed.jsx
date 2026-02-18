@@ -31,7 +31,7 @@ const ARTICLE_ARCHETYPES = new Set([
  */
 export const isArticleArchetype = (archetype) => ARTICLE_ARCHETYPES.has(archetype);
 
-const ArticleEmbed = ({ fragmentId, archetype, domain, url, hasHtml }) => {
+const ArticleEmbed = ({ fragmentId, archetype, domain, url, hasHtml, bbox }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
   const [htmlData, setHtmlData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -124,11 +124,12 @@ const ArticleEmbed = ({ fragmentId, archetype, domain, url, hasHtml }) => {
         overflow-wrap: break-word;
       }
 
-      /* Ensure images are responsive */
+      /* Ensure images are responsive and centered */
       img {
         max-width: 100%;
         height: auto;
         display: block;
+        margin: 0 auto;
       }
 
       /* Readable link styles */
@@ -215,7 +216,8 @@ const ArticleEmbed = ({ fragmentId, archetype, domain, url, hasHtml }) => {
 
       /* Figures and captions */
       figure {
-        margin: 1em 0;
+        margin: 1em auto;
+        max-width: 100%;
       }
       figcaption {
         font-size: 0.85em;
@@ -287,7 +289,7 @@ const ArticleEmbed = ({ fragmentId, archetype, domain, url, hasHtml }) => {
   }
 
   return (
-    <div ref={containerRef} className="article-embed-container">
+    <div ref={containerRef} className="article-embed-container" style={bbox?.width ? { maxWidth: `${bbox.width}px` } : undefined}>
       {isLoading ? (
         <div className="article-embed-placeholder">
           <div className="article-loading-skeleton">
