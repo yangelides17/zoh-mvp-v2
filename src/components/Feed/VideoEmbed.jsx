@@ -33,6 +33,10 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
   const iframeRef = useRef(null);
   const spotifyContainerRef = useRef(null);
   const poolEntryRef = useRef(null);
+  const isPlayerReadyRef = useRef(false);
+  const isVisibleRef = useRef(false);
+  const isPlayingRef = useRef(false);
+  const readyTimerRef = useRef(null);
 
   // Lazy load: render content when within 500px of viewport
   useEffect(() => {
@@ -160,6 +164,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
       );
     }
     setIsPlaying(true);
+    isPlayingRef.current = true;
   }, [platform]);
 
   // YouTube/Vimeo: pause (Spotify handled separately)
@@ -186,20 +191,91 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
       );
     }
     setIsPlaying(false);
+    isPlayingRef.current = false;
   }, [platform]);
+
+  // Helper: attempt autoplay only when both visible AND player ready
+  const tryAutoplay = useCallback(() => {
+    if (isVisibleRef.current && isPlayerReadyRef.current && !isPlayingRef.current) {
+      playVideo();
+    }
+  }, [playVideo]);
+
+  // Listen for player ready messages from YouTube/Vimeo iframes
+  useEffect(() => {
+    if (!shouldLoad || platform === 'spotify') return;
+
+    const handleMessage = (event) => {
+      if (event.source !== iframeRef.current?.contentWindow) return;
+
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+        const isYouTubeReady = platform === 'youtube' && data?.event === 'initialDelivery';
+        const isVimeoReady = platform === 'vimeo' && data?.event === 'ready';
+
+        if (isYouTubeReady || isVimeoReady) {
+          isPlayerReadyRef.current = true;
+          if (readyTimerRef.current) {
+            clearTimeout(readyTimerRef.current);
+            readyTimerRef.current = null;
+          }
+          tryAutoplay();
+        }
+      } catch {
+        // Ignore non-JSON messages
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [shouldLoad, platform, tryAutoplay]);
+
+  // Fallback: if postMessage ready event doesn't fire, use iframe onLoad + timer
+  const handleIframeLoad = useCallback(() => {
+    if (isPlayerReadyRef.current) return;
+    readyTimerRef.current = setTimeout(() => {
+      if (!isPlayerReadyRef.current) {
+        isPlayerReadyRef.current = true;
+        tryAutoplay();
+      }
+    }, 1500);
+  }, [tryAutoplay]);
+
+  // Reset readiness when embedUrl changes
+  useEffect(() => {
+    isPlayerReadyRef.current = false;
+    if (readyTimerRef.current) {
+      clearTimeout(readyTimerRef.current);
+      readyTimerRef.current = null;
+    }
+  }, [embedUrl]);
+
+  // Cleanup ready timer on unmount
+  useEffect(() => {
+    return () => {
+      if (readyTimerRef.current) {
+        clearTimeout(readyTimerRef.current);
+      }
+    };
+  }, []);
 
   // YouTube/Vimeo: autoplay/pause based on visibility
   useEffect(() => {
-    if (!shouldLoad || !iframeRef.current) return;
+    if (!shouldLoad) return;
     if (platform === 'spotify') return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         const shouldPlay = entry.isIntersecting && entry.intersectionRatio > 0.5;
+        isVisibleRef.current = shouldPlay;
 
-        if (shouldPlay && !isPlaying) {
-          playVideo();
-        } else if (!shouldPlay && isPlaying) {
+        if (shouldPlay && !isPlayingRef.current) {
+          if (isPlayerReadyRef.current) {
+            playVideo();
+          }
+          // If not ready yet, tryAutoplay() will fire when readiness arrives
+        } else if (!shouldPlay && isPlayingRef.current) {
           pauseVideo();
         }
       },
@@ -213,7 +289,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
     }
 
     return () => observer.disconnect();
-  }, [shouldLoad, isPlaying, playVideo, pauseVideo, platform]);
+  }, [shouldLoad, playVideo, pauseVideo, platform]);
 
   const handleError = () => {
     setHasError(true);
@@ -263,6 +339,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
           loading="lazy"
           frameBorder="0"
           title={`${platform} video from ${domain} - ${archetype}`}
+          onLoad={handleIframeLoad}
           onError={handleError}
         />
       )}

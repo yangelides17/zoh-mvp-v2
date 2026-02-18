@@ -36,7 +36,7 @@ export const parseVideoUrl = (url) => {
       // Use youtube-nocookie.com for better privacy
       // Parameters: autoplay=0 (controlled via JS API), rel=0 (no related videos),
       // modestbranding=1 (minimal branding), enablejsapi=1 (JS API for play/pause/mute control)
-      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1&enablejsapi=1`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`,
       thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
     };
   }
