@@ -33,7 +33,7 @@ function getSpotifyUri(embedUrl) {
 const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [, setIsPlaying] = useState(false);
   const [hasController, setHasController] = useState(false);
   const containerRef = useRef(null);
   const iframeRef = useRef(null);
