@@ -85,6 +85,7 @@ const FragmentCard = ({ fragment, index }) => {
             domain={fragment.domain}
             url={fragment.url}
             hasHtml={fragment.has_html}
+            bbox={fragment.bbox}
           />
         ) : (
           <div className="fragment-image-wrapper">
