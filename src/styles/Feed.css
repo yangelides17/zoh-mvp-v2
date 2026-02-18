@@ -615,6 +615,34 @@
   aspect-ratio: 16 / 9; /* Modern CSS aspect ratio */
 }
 
+/* Video card styles — mirrors video_player for embedded video_card fragments */
+.fragment-card.video_card .fragment-card-content {
+  cursor: default;
+}
+
+.fragment-card.video_card .fragment-metadata {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.fragment-card.video_card .fragment-metadata:hover {
+  opacity: 0.9;
+}
+
+.fragment-card.video_card .fragment-hint {
+  bottom: 80px;
+}
+
+.fragment-card.video_card .video-embed-container {
+  position: relative;
+  max-width: 90%;
+  max-height: 80vh;
+  width: 80vw;
+  height: auto;
+  padding-bottom: 0;
+  aspect-ratio: 16 / 9;
+}
+
 /* Article-specific styles - interactive content, not clickable cards */
 .fragment-card.article .fragment-card-content,
 .fragment-card.article_media .fragment-card-content,

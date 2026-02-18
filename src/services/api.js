@@ -124,6 +124,18 @@ export const fetchAvailableArchetypes = async () => {
 };
 
 /**
+ * Cache extracted destination URL for a video_card fragment
+ * @param {string} fragmentId - Fragment UUID
+ * @param {string} destinationUrl - The extracted destination URL
+ * @returns {Promise<void>}
+ */
+export const cacheDestinationUrl = async (fragmentId, destinationUrl) => {
+  await api.put(`/api/feed/fragment/${fragmentId}/destination-url`, {
+    destination_url: destinationUrl
+  });
+};
+
+/**
  * Health check
  * @returns {Promise<{status: string, service: string}>}
  */
