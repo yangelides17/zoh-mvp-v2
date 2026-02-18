@@ -47,7 +47,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
         }
       },
       {
-        rootMargin: '1500px',
+        rootMargin: '1000px',
         threshold: 0.01
       }
     );

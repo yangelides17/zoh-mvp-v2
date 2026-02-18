@@ -79,7 +79,7 @@ const VideoCardEmbed = ({ fragmentId, archetype, domain, destinationUrl }) => {
 
         loadAndExtract();
       },
-      { rootMargin: '1500px', threshold: 0.01 }
+      { rootMargin: '1000px', threshold: 0.01 }
     );
 
     if (containerRef.current) {
