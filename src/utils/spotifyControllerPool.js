@@ -17,6 +17,8 @@
  * Usage:
  *   const entry = await claimController(containerEl, spotifyUri, 'preload');
  *   updateRole(entry, 'visible');   // upgrade when fully visible
+ *   playController(entry);          // seek(0) + play when scrolled into view
+ *   pauseController(entry);         // pause when scrolled away
  *   updateRole(entry, 'recent');    // downgrade when scrolled away
  *   releaseController(entry);       // fully release when out of zone
  */
@@ -25,7 +27,7 @@ import spotifyIframeApiReady from './spotifyIframeApi';
 
 const MAX_POOL_SIZE = 3;
 
-// Pool entries: { controller, iframe, uri, role, claimed }
+// Pool entries: { controller, iframe, uri, role, claimed, isPlaying, onPlaybackChange }
 const pool = [];
 
 // Hidden container to keep unclaimed controller iframes alive in the DOM
@@ -106,9 +108,21 @@ export async function claimController(containerEl, uri, role = 'preload') {
 
           iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:12px;';
 
-          const newEntry = { controller, iframe, uri, role: null, claimed: false };
+          const newEntry = {
+            controller, iframe, uri, role: null, claimed: false,
+            isPlaying: false,
+            onPlaybackChange: null,
+          };
+
+          controller.addListener('playback_update', (e) => {
+            const wasPlaying = newEntry.isPlaying;
+            newEntry.isPlaying = !e.data.isPaused && !e.data.isBuffering;
+            if (newEntry.isPlaying !== wasPlaying && newEntry.onPlaybackChange) {
+              newEntry.onPlaybackChange(newEntry.isPlaying);
+            }
+          });
+
           pool.push(newEntry);
-          console.log('[Spotify Pool] Controller created, pool size:', pool.length);
           resolve(newEntry);
         }
       );
@@ -119,9 +133,11 @@ export async function claimController(containerEl, uri, role = 'preload') {
     // Pool full, try to steal
     entry = findStealable(role);
     if (!entry) return null;
-    // Park the stolen entry's iframe
+    // Pause and park the stolen entry's iframe
+    try { entry.controller.pause(); } catch (_) { /* ignore */ }
+    entry.isPlaying = false;
+    entry.onPlaybackChange = null;
     getParkingContainer().appendChild(entry.iframe);
-    console.log('[Spotify Pool] Stole controller from role:', entry.role);
   }
 
   // Reparent the iframe into the target container
@@ -133,7 +149,6 @@ export async function claimController(containerEl, uri, role = 'preload') {
   if (entry.uri !== uri) {
     entry.uri = uri;
     entry.controller.loadUri(uri);
-    console.log('[Spotify Pool] loadUri:', uri);
   }
 
   return entry;
@@ -152,9 +167,39 @@ export function updateRole(entry, newRole) {
  */
 export function releaseController(entry) {
   if (!entry) return;
+  try { entry.controller.pause(); } catch (_) { /* ignore */ }
+  entry.isPlaying = false;
+  entry.onPlaybackChange = null;
   entry.claimed = false;
   entry.role = null;
   if (entry.iframe) {
     getParkingContainer().appendChild(entry.iframe);
   }
+}
+
+/**
+ * Start playback from the beginning. Reloads the URI to reset controller
+ * state (play() after pause() is broken in the Spotify SDK), then seeks
+ * to 0 and plays.
+ */
+export function playController(entry) {
+  if (!entry?.controller) return false;
+  try {
+    // play() after pause() is broken in the Spotify SDK. Reloading the same
+    // URI forces a fresh playable state, then seek(0)+play() starts playback.
+    entry.controller.loadUri(entry.uri);
+    entry.controller.seek(0);
+    entry.controller.play();
+    return true;
+  } catch (_) { return false; }
+}
+
+/**
+ * Pause playback on the controller.
+ */
+export function pauseController(entry) {
+  if (!entry?.controller) return;
+  try {
+    entry.controller.pause();
+  } catch (_) { /* ignore */ }
 }

@@ -9,7 +9,13 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { claimController, releaseController, updateRole } from '../../utils/spotifyControllerPool';
+import {
+  claimController,
+  releaseController,
+  updateRole,
+  playController,
+  pauseController,
+} from '../../utils/spotifyControllerPool';
 import './VideoEmbed.css';
 
 /**
@@ -38,7 +44,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
   const isPlayingRef = useRef(false);
   const readyTimerRef = useRef(null);
 
-  // Lazy load: render content when within 500px of viewport
+  // Lazy load: render content when within 1000px of viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -59,7 +65,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
     return () => observer.disconnect();
   }, []);
 
-  // Spotify: pre-load zone — claim controller when entering 500px zone, release when leaving
+  // Spotify: pre-load zone — claim controller when entering zone, release when leaving
   useEffect(() => {
     if (platform !== 'spotify' || !shouldLoad) return;
 
@@ -83,10 +89,18 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
             if (cancelled || !poolEntry) return;
             poolEntryRef.current = poolEntry;
             setHasController(true);
+            // If already fully visible when claim resolves, play immediately
+            // (the visibility observer won't fire again since the element is already in view)
+            if (isVisibleRef.current && !isPlayingRef.current) {
+              updateRole(poolEntry, 'visible');
+              playController(poolEntry);
+            }
           });
         } else if (!inZone && poolEntryRef.current) {
           releaseController(poolEntryRef.current);
           poolEntryRef.current = null;
+          isPlayingRef.current = false;
+          setIsPlaying(false);
           setHasController(false);
         }
       },
@@ -103,11 +117,14 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
       if (poolEntryRef.current) {
         releaseController(poolEntryRef.current);
         poolEntryRef.current = null;
+        isPlayingRef.current = false;
+        setIsPlaying(false);
+        setHasController(false);
       }
     };
   }, [platform, shouldLoad, embedUrl]);
 
-  // Spotify: visibility — upgrade to 'visible' when fully on screen, downgrade to 'recent' when not
+  // Spotify: visibility — play from beginning when fully visible, pause when not
   useEffect(() => {
     if (platform !== 'spotify' || !shouldLoad) return;
 
@@ -117,8 +134,20 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
 
         if (isFullyVisible && poolEntryRef.current) {
           updateRole(poolEntryRef.current, 'visible');
-        } else if (!isFullyVisible && poolEntryRef.current && poolEntryRef.current.role === 'visible') {
-          updateRole(poolEntryRef.current, 'recent');
+          isVisibleRef.current = true;
+          if (!isPlayingRef.current) {
+            playController(poolEntryRef.current);
+          }
+        } else if (!isFullyVisible && poolEntryRef.current) {
+          if (poolEntryRef.current.role === 'visible') {
+            updateRole(poolEntryRef.current, 'recent');
+          }
+          isVisibleRef.current = false;
+          if (isPlayingRef.current) {
+            pauseController(poolEntryRef.current);
+            isPlayingRef.current = false;
+            setIsPlaying(false);
+          }
         }
       },
       { threshold: [0, 0.99] }
@@ -130,6 +159,19 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
 
     return () => observer.disconnect();
   }, [platform, shouldLoad]);
+
+  // Spotify: sync component state with pool entry via callback
+  useEffect(() => {
+    if (platform !== 'spotify') return;
+    const entry = poolEntryRef.current;
+    if (!entry) return;
+
+    entry.onPlaybackChange = (playing) => {
+      isPlayingRef.current = playing;
+      setIsPlaying(playing);
+    };
+    return () => { if (entry) entry.onPlaybackChange = null; };
+  }, [platform, hasController]);
 
   // YouTube/Vimeo: play (Spotify handled separately)
   const playVideo = useCallback(() => {
