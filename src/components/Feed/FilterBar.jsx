@@ -16,6 +16,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   const [tempDomains, setTempDomains] = useState(currentFilters.domains || []);
   const [tempArchetypes, setTempArchetypes] = useState(currentFilters.archetypes || []);
   const [tempCurated, setTempCurated] = useState(currentFilters.curated || false);
+  const [tempSource, setTempSource] = useState(currentFilters.source || 'all');
 
   const [loading, setLoading] = useState(true);
 
@@ -60,6 +61,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     setTempDomains(currentFilters.domains || []);
     setTempArchetypes(currentFilters.archetypes || []);
     setTempCurated(currentFilters.curated || false);
+    setTempSource(currentFilters.source || 'all');
   }, [currentFilters]);
 
   // Format archetype name (snake_case to Title Case)
@@ -78,7 +80,8 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     const archetypesChanged = JSON.stringify(tempArchetypes.sort()) !==
                              JSON.stringify((currentFilters.archetypes || []).sort());
     const curatedChanged = tempCurated !== (currentFilters.curated || false);
-    return domainsChanged || archetypesChanged || curatedChanged;
+    const sourceChanged = tempSource !== (currentFilters.source || 'all');
+    return domainsChanged || archetypesChanged || curatedChanged || sourceChanged;
   };
 
   // Apply filters
@@ -86,7 +89,8 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     onApplyFilters({
       domains: tempDomains,
       archetypes: tempArchetypes,
-      curated: tempCurated
+      curated: tempCurated,
+      source: tempSource
     });
   };
 
@@ -95,15 +99,17 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     setTempDomains([]);
     setTempArchetypes([]);
     setTempCurated(false);
+    setTempSource('all');
     onApplyFilters({
       domains: [],
       archetypes: [],
-      curated: false
+      curated: false,
+      source: 'all'
     });
   };
 
   // Check if any filters are active
-  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0 || tempCurated;
+  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0 || tempCurated || tempSource !== 'all';
 
   if (loading) {
     return (
@@ -131,6 +137,22 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
           onChange={setTempArchetypes}
           icon="▼"
         />
+        <div className="source-toggle">
+          {[
+            { value: 'all', label: 'All' },
+            { value: 'manual', label: 'Human' },
+            { value: 'model_prediction', label: 'Model' }
+          ].map(opt => (
+            <button
+              key={opt.value}
+              className={`source-toggle-btn ${tempSource === opt.value ? 'active' : ''}`}
+              onClick={() => setTempSource(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
         <label className="curated-toggle">
           <input
             type="checkbox"

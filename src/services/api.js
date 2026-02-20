@@ -25,7 +25,7 @@ const api = axios.create({
  * @param {string|null} randomSeed - Random seed for deterministic pseudo-random ordering
  * @returns {Promise<{fragments: Array, next_cursor: string|null, has_more: boolean}>}
  */
-export const fetchFragments = async (limit = 20, cursor = null, domains = [], archetypes = [], randomSeed = null, curated = false) => {
+export const fetchFragments = async (limit = 20, cursor = null, domains = [], archetypes = [], randomSeed = null, curated = false, source = 'all') => {
   try {
     const params = { limit };
     if (cursor) {
@@ -42,6 +42,9 @@ export const fetchFragments = async (limit = 20, cursor = null, domains = [], ar
     }
     if (curated) {
       params.curated = 'true';
+    }
+    if (source && source !== 'all') {
+      params.source = source;
     }
 
     const response = await api.get('/api/feed/fragments', { params });
