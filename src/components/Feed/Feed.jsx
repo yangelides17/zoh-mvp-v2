@@ -74,6 +74,13 @@ const Feed = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [refresh]);
 
+  // Scroll to top when filters change
+  useEffect(() => {
+    if (feedRef.current) {
+      feedRef.current.scrollTo({ top: 0 });
+    }
+  }, [filters]);
+
   // Error state
   if (error && fragments.length === 0) {
     return (
