@@ -11,7 +11,6 @@
   overflow-y: scroll;
   overflow-x: hidden;
   scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
   background: #000;
   position: relative;
 }
