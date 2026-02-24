@@ -32,8 +32,9 @@ const FilterDropdown = ({
     }
   }, [isOpen]);
 
-  // Filter options by search term
+  // Filter options by search term (match on label and value)
   const filteredOptions = options.filter(option =>
+    option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
     option.value.toLowerCase().includes(searchTerm.toLowerCase())
   );
 

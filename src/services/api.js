@@ -25,7 +25,7 @@ const api = axios.create({
  * @param {string|null} randomSeed - Random seed for deterministic pseudo-random ordering
  * @returns {Promise<{fragments: Array, next_cursor: string|null, has_more: boolean}>}
  */
-export const fetchFragments = async (limit = 20, cursor = null, domains = [], archetypes = [], randomSeed = null, curated = false, source = 'all') => {
+export const fetchFragments = async (limit = 20, cursor = null, domains = [], archetypes = [], randomSeed = null, curated = false, source = 'all', pageIds = []) => {
   try {
     const params = { limit };
     if (cursor) {
@@ -36,6 +36,9 @@ export const fetchFragments = async (limit = 20, cursor = null, domains = [], ar
     }
     if (archetypes && archetypes.length > 0) {
       params.archetypes = archetypes.join(',');
+    }
+    if (pageIds && pageIds.length > 0) {
+      params.page_ids = pageIds.join(',');
     }
     if (randomSeed) {
       params.random_seed = randomSeed;
@@ -122,6 +125,20 @@ export const fetchAvailableArchetypes = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching available archetypes:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch available pages with counts and per-domain page numbering
+ * @returns {Promise<{pages: Array<{page_id: string, url: string, domain: string, page_number: number, total_domain_pages: number, count: number}>}>}
+ */
+export const fetchAvailablePages = async () => {
+  try {
+    const response = await api.get('/api/feed/available-pages');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching available pages:', error);
     throw error;
   }
 };

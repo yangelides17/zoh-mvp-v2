@@ -6,15 +6,17 @@
 
 import React, { useState, useEffect } from 'react';
 import FilterDropdown from './FilterDropdown';
-import { fetchAvailableSites, fetchAvailableArchetypes } from '../../services/api';
+import { fetchAvailableSites, fetchAvailableArchetypes, fetchAvailablePages } from '../../services/api';
 
 const FilterBar = ({ onApplyFilters, currentFilters }) => {
   const [siteOptions, setSiteOptions] = useState([]);
   const [archetypeOptions, setArchetypeOptions] = useState([]);
+  const [pageOptions, setPageOptions] = useState([]);
 
   // Temporary selections (before Apply)
   const [tempDomains, setTempDomains] = useState(currentFilters.domains || []);
   const [tempArchetypes, setTempArchetypes] = useState(currentFilters.archetypes || []);
+  const [tempPages, setTempPages] = useState(currentFilters.pages || []);
   const [tempCurated, setTempCurated] = useState(currentFilters.curated || false);
   const [tempSource, setTempSource] = useState(currentFilters.source || 'all');
 
@@ -25,9 +27,10 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     const loadOptions = async () => {
       setLoading(true);
       try {
-        const [sitesData, archetypesData] = await Promise.all([
+        const [sitesData, archetypesData, pagesData] = await Promise.all([
           fetchAvailableSites(),
-          fetchAvailableArchetypes()
+          fetchAvailableArchetypes(),
+          fetchAvailablePages()
         ]);
 
         // Format sites for dropdown
@@ -44,8 +47,17 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
           count: archetype.count
         }));
 
+        // Format pages for dropdown (url - Page X/Y)
+        const pages = pagesData.pages.map(page => ({
+          value: page.page_id,
+          label: `${page.url} - Page ${page.page_number}/${page.total_domain_pages}`,
+          count: page.count,
+          domain: page.domain
+        }));
+
         setSiteOptions(sites);
         setArchetypeOptions(archetypes);
+        setPageOptions(pages);
       } catch (error) {
         console.error('Error loading filter options:', error);
       } finally {
@@ -60,6 +72,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   useEffect(() => {
     setTempDomains(currentFilters.domains || []);
     setTempArchetypes(currentFilters.archetypes || []);
+    setTempPages(currentFilters.pages || []);
     setTempCurated(currentFilters.curated || false);
     setTempSource(currentFilters.source || 'all');
   }, [currentFilters]);
@@ -73,15 +86,22 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
       .join(' ');
   };
 
+  // When domains are selected, narrow page options to only pages from those domains
+  const filteredPageOptions = tempDomains.length > 0
+    ? pageOptions.filter(page => tempDomains.includes(page.domain))
+    : pageOptions;
+
   // Check if filters have changed
   const hasChanges = () => {
     const domainsChanged = JSON.stringify(tempDomains.sort()) !==
                           JSON.stringify((currentFilters.domains || []).sort());
     const archetypesChanged = JSON.stringify(tempArchetypes.sort()) !==
                              JSON.stringify((currentFilters.archetypes || []).sort());
+    const pagesChanged = JSON.stringify(tempPages.sort()) !==
+                        JSON.stringify((currentFilters.pages || []).sort());
     const curatedChanged = tempCurated !== (currentFilters.curated || false);
     const sourceChanged = tempSource !== (currentFilters.source || 'all');
-    return domainsChanged || archetypesChanged || curatedChanged || sourceChanged;
+    return domainsChanged || archetypesChanged || pagesChanged || curatedChanged || sourceChanged;
   };
 
   // Apply filters
@@ -89,6 +109,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     onApplyFilters({
       domains: tempDomains,
       archetypes: tempArchetypes,
+      pages: tempPages,
       curated: tempCurated,
       source: tempSource
     });
@@ -98,18 +119,20 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   const handleClearAll = () => {
     setTempDomains([]);
     setTempArchetypes([]);
+    setTempPages([]);
     setTempCurated(false);
     setTempSource('all');
     onApplyFilters({
       domains: [],
       archetypes: [],
+      pages: [],
       curated: false,
       source: 'all'
     });
   };
 
   // Check if any filters are active
-  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0 || tempCurated || tempSource !== 'all';
+  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0 || tempPages.length > 0 || tempCurated || tempSource !== 'all';
 
   if (loading) {
     return (
@@ -135,6 +158,14 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
           options={archetypeOptions}
           selected={tempArchetypes}
           onChange={setTempArchetypes}
+          icon="▼"
+        />
+
+        <FilterDropdown
+          label="Pages"
+          options={filteredPageOptions}
+          selected={tempPages}
+          onChange={setTempPages}
           icon="▼"
         />
         <div className="source-toggle">
