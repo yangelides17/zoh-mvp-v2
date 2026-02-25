@@ -1,11 +1,14 @@
 /**
  * useFeedData Hook
  *
- * Manages fragment feed data fetching and infinite scroll pagination
+ * Manages feed data fetching and infinite scroll pagination.
+ * Uses the /articles endpoint which returns assembled articles
+ * (grouped article/article_media fragments) and standalone fragments
+ * as a unified feed.
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { fetchFragments } from '../services/api';
+import { fetchArticles } from '../services/api';
 
 /**
  * Generate a random seed for feed ordering
@@ -16,7 +19,7 @@ const generateRandomSeed = () => {
 };
 
 export const useFeedData = () => {
-  const [fragments, setFragments] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasMore, setHasMore] = useState(true);
@@ -33,43 +36,43 @@ export const useFeedData = () => {
   });
 
   /**
-   * Load initial fragments
+   * Load initial feed items
    */
-  const loadInitialFragments = useCallback(async () => {
+  const loadInitialItems = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await fetchFragments(20, null, filters.domains, filters.archetypes, randomSeed, filters.curated, filters.source, filters.pages);
-      setFragments(data.fragments || []);
+      const data = await fetchArticles(20, null, filters.domains, filters.archetypes, randomSeed, filters.curated, filters.source, filters.pages);
+      setItems(data.items || []);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
     } catch (err) {
-      setError(err.message || 'Failed to load fragments');
-      console.error('Error loading initial fragments:', err);
+      setError(err.message || 'Failed to load feed');
+      console.error('Error loading initial feed items:', err);
     } finally {
       setLoading(false);
     }
   }, [filters.domains, filters.archetypes, filters.pages, filters.curated, filters.source, randomSeed]);
 
   /**
-   * Load more fragments (for infinite scroll)
+   * Load more feed items (for infinite scroll)
    * Uses same randomSeed to maintain deterministic ordering
    */
-  const loadMoreFragments = useCallback(async () => {
+  const loadMoreItems = useCallback(async () => {
     if (!hasMore || loading) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      const data = await fetchFragments(20, cursor, filters.domains, filters.archetypes, randomSeed, filters.curated, filters.source, filters.pages);
-      setFragments(prev => [...prev, ...(data.fragments || [])]);
+      const data = await fetchArticles(20, cursor, filters.domains, filters.archetypes, randomSeed, filters.curated, filters.source, filters.pages);
+      setItems(prev => [...prev, ...(data.items || [])]);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
     } catch (err) {
-      setError(err.message || 'Failed to load more fragments');
-      console.error('Error loading more fragments:', err);
+      setError(err.message || 'Failed to load more items');
+      console.error('Error loading more feed items:', err);
     } finally {
       setLoading(false);
     }
@@ -83,8 +86,7 @@ export const useFeedData = () => {
     setFilters(newFilters);
     setCursor(null);
     setHasMore(true);
-    setRandomSeed(generateRandomSeed()); // Re-randomize on filter change
-    // Load initial fragments will be called via useEffect
+    setRandomSeed(generateRandomSeed());
   }, []);
 
   /**
@@ -94,21 +96,23 @@ export const useFeedData = () => {
   const refresh = useCallback(() => {
     setCursor(null);
     setHasMore(true);
-    setRandomSeed(generateRandomSeed()); // Re-randomize on refresh
-    loadInitialFragments();
-  }, [loadInitialFragments]);
+    setRandomSeed(generateRandomSeed());
+    loadInitialItems();
+  }, [loadInitialItems]);
 
-  // Load initial fragments on mount and when filters change
+  // Load initial items on mount and when filters change
   useEffect(() => {
-    loadInitialFragments();
-  }, [loadInitialFragments]);
+    loadInitialItems();
+  }, [loadInitialItems]);
 
+  // Backward-compatible: expose items as both `items` and `fragments`
   return {
-    fragments,
+    items,
+    fragments: items,
     loading,
     error,
     hasMore,
-    loadMore: loadMoreFragments,
+    loadMore: loadMoreItems,
     refresh,
     filters,
     applyFilters

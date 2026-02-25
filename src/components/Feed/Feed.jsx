@@ -1,17 +1,20 @@
 /**
  * Feed Component
  *
- * Main TikTok-style vertical scroll feed for fragments
+ * Main TikTok-style vertical scroll feed.
+ * Renders assembled articles (grouped article/article_media fragments)
+ * and standalone fragments in a unified feed.
  */
 
 import React, { useEffect, useCallback, useRef } from 'react';
 import useFeedData from '../../hooks/useFeedData';
 import FragmentCard from './FragmentCard';
+import AssembledArticle from './AssembledArticle';
 import FilterBar from './FilterBar';
 import '../../styles/Feed.css';
 
 const Feed = () => {
-  const { fragments, loading, error, hasMore, loadMore, refresh, filters, applyFilters } = useFeedData();
+  const { items, loading, error, hasMore, loadMore, refresh, filters, applyFilters } = useFeedData();
   const feedRef = useRef(null);
   const loadMoreThrottleRef = useRef(false);
 
@@ -82,7 +85,7 @@ const Feed = () => {
   }, [filters]);
 
   // Error state
-  if (error && fragments.length === 0) {
+  if (error && items.length === 0) {
     return (
       <div className="feed-error">
         <div className="error-content">
@@ -98,7 +101,7 @@ const Feed = () => {
   }
 
   // Loading initial state
-  if (loading && fragments.length === 0) {
+  if (loading && items.length === 0) {
     return (
       <div className="feed-loading">
         <div className="loading-spinner"></div>
@@ -108,7 +111,7 @@ const Feed = () => {
   }
 
   // Empty state
-  if (!loading && fragments.length === 0) {
+  if (!loading && items.length === 0) {
     return (
       <div className="feed-empty">
         <div className="empty-content">
@@ -151,24 +154,31 @@ const Feed = () => {
             ↻
           </button>
           <div className="fragment-count">
-            {fragments.length} fragment{fragments.length !== 1 ? 's' : ''}
+            {items.length} item{items.length !== 1 ? 's' : ''}
           </div>
         </div>
       </div>
 
-      {/* Fragment Cards */}
+      {/* Feed Items */}
       <div className="feed-content">
-        {fragments.map((fragment, index) => (
-          <FragmentCard
-            key={fragment.fragment_id}
-            fragment={fragment}
-            index={index}
-          />
+        {items.map((item, index) => (
+          item.type === 'article' ? (
+            <AssembledArticle
+              key={`article-${item.article_id}`}
+              article={item}
+            />
+          ) : (
+            <FragmentCard
+              key={item.fragment_id}
+              fragment={item}
+              index={index}
+            />
+          )
         ))}
       </div>
 
       {/* Loading More Indicator */}
-      {loading && fragments.length > 0 && (
+      {loading && items.length > 0 && (
         <div className="feed-loading-more">
           <div className="loading-spinner-small"></div>
           <span>Loading more...</span>
@@ -176,7 +186,7 @@ const Feed = () => {
       )}
 
       {/* End of Feed */}
-      {!hasMore && fragments.length > 0 && (
+      {!hasMore && items.length > 0 && (
         <div className="feed-end">
           <p>You've reached the end!</p>
           <button onClick={refresh} className="retry-button">

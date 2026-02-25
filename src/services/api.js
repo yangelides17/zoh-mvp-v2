@@ -87,6 +87,68 @@ export const fetchFragmentHtml = async (fragmentId) => {
 };
 
 /**
+ * Fetch grouped feed items (articles + standalone fragments)
+ * @param {number} limit - Number of feed items to fetch
+ * @param {string|null} cursor - Cursor for pagination
+ * @param {Array<string>} domains - Filter by domains
+ * @param {Array<string>} archetypes - Filter by archetypes
+ * @param {string|null} randomSeed - Random seed for deterministic ordering
+ * @param {boolean} curated - Only curated content
+ * @param {string} source - Filter by source (all/manual/model_prediction)
+ * @param {Array<string>} pageIds - Filter by page IDs
+ * @returns {Promise<{items: Array, next_cursor: string|null, has_more: boolean}>}
+ */
+export const fetchArticles = async (limit = 20, cursor = null, domains = [], archetypes = [], randomSeed = null, curated = false, source = 'all', pageIds = []) => {
+  try {
+    const params = { limit };
+    if (cursor) {
+      params.cursor = cursor;
+    }
+    if (domains && domains.length > 0) {
+      params.domains = domains.join(',');
+    }
+    if (archetypes && archetypes.length > 0) {
+      params.archetypes = archetypes.join(',');
+    }
+    if (pageIds && pageIds.length > 0) {
+      params.page_ids = pageIds.join(',');
+    }
+    if (randomSeed) {
+      params.random_seed = randomSeed;
+    }
+    if (curated) {
+      params.curated = 'true';
+    }
+    if (source && source !== 'all') {
+      params.source = source;
+    }
+
+    const response = await api.get('/api/feed/articles', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch combined HTML for an assembled article (all article fragments from a page)
+ * @param {string} pageId - Page UUID
+ * @returns {Promise<{html: string, styles: string[], stylesheet_urls: string[], base_url: string, fragment_ids: string[]}>}
+ */
+export const fetchArticleHtml = async (pageId) => {
+  try {
+    const response = await api.get(`/api/feed/article/${pageId}/html`);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status !== 404) {
+      console.error('Error fetching article HTML:', error);
+    }
+    throw error;
+  }
+};
+
+/**
  * Fetch fragment metadata
  * @param {string} fragmentId - Fragment UUID
  * @returns {Promise<Object>} Fragment metadata

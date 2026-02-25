@@ -1,0 +1,149 @@
+/**
+ * AssembledArticle Component Styles
+ *
+ * Container styling for assembled article cards in the feed.
+ * Based on ArticleEmbed.css patterns.
+ */
+
+/* Card container - uses fragment-card class for keyboard nav compatibility */
+.assembled-article-card {
+  position: relative;
+  width: 90%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Wrapper with scrollability for long articles */
+.assembled-article-wrapper {
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.assembled-article-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.assembled-article-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.assembled-article-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.assembled-article-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Shadow DOM host */
+.assembled-article-shadow-host {
+  width: 100%;
+}
+
+/* Source metadata bar */
+.assembled-article-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  width: 100%;
+  max-width: 800px;
+}
+
+.assembled-article-domain {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.02em;
+}
+
+.assembled-article-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Loading placeholder */
+.assembled-article-placeholder {
+  width: 90%;
+  max-width: 800px;
+  height: 400px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.assembled-article-skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+  background-size: 200% 100%;
+  animation: assembled-skeleton-pulse 1.5s ease-in-out infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 12px;
+}
+
+@keyframes assembled-skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.assembled-article-icon {
+  font-size: 3rem;
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.6;
+  font-weight: bold;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.assembled-article-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .assembled-article-card {
+    width: 95%;
+  }
+
+  .assembled-article-wrapper {
+    max-height: 75vh;
+    border-radius: 8px;
+  }
+
+  .assembled-article-placeholder {
+    width: 95%;
+    height: 300px;
+    border-radius: 8px;
+  }
+
+  .assembled-article-icon {
+    font-size: 2rem;
+  }
+}
