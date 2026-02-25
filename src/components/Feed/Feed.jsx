@@ -46,6 +46,10 @@ const Feed = () => {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Ignore shortcuts when typing in an input/textarea
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+
       if (!feedRef.current) return;
 
       const cards = feedRef.current.querySelectorAll('.fragment-card');
@@ -107,6 +111,15 @@ const Feed = () => {
     );
   }
 
+  // Check if any filters are active
+  const hasActiveFilters = filters.domains.length > 0 || filters.archetypes.length > 0 ||
+    filters.pages.length > 0 || filters.curated || filters.source !== 'all' ||
+    (filters.search && filters.search.trim() !== '');
+
+  const clearAllFilters = () => {
+    applyFilters({ domains: [], archetypes: [], pages: [], curated: false, source: 'all', search: '' });
+  };
+
   // Empty state
   if (!loading && fragments.length === 0) {
     return (
@@ -114,7 +127,12 @@ const Feed = () => {
         <div className="empty-content">
           <div className="empty-icon">📦</div>
           <h2>No Fragments Found</h2>
-          <p>No labeled fragments available in the database yet.</p>
+          <p>{hasActiveFilters ? 'No fragments match your current filters.' : 'No labeled fragments available in the database yet.'}</p>
+          {hasActiveFilters && (
+            <button onClick={clearAllFilters} className="retry-button">
+              Clear Filters
+            </button>
+          )}
           <button onClick={refresh} className="retry-button">
             Refresh
           </button>
