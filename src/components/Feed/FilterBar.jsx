@@ -19,6 +19,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   const [tempPages, setTempPages] = useState(currentFilters.pages || []);
   const [tempCurated, setTempCurated] = useState(currentFilters.curated || false);
   const [tempSource, setTempSource] = useState(currentFilters.source || 'all');
+  const [tempSearch, setTempSearch] = useState(currentFilters.search || '');
 
   const [loading, setLoading] = useState(true);
 
@@ -75,6 +76,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     setTempPages(currentFilters.pages || []);
     setTempCurated(currentFilters.curated || false);
     setTempSource(currentFilters.source || 'all');
+    setTempSearch(currentFilters.search || '');
   }, [currentFilters]);
 
   // Format archetype name (snake_case to Title Case)
@@ -101,7 +103,8 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
                         JSON.stringify((currentFilters.pages || []).sort());
     const curatedChanged = tempCurated !== (currentFilters.curated || false);
     const sourceChanged = tempSource !== (currentFilters.source || 'all');
-    return domainsChanged || archetypesChanged || pagesChanged || curatedChanged || sourceChanged;
+    const searchChanged = tempSearch !== (currentFilters.search || '');
+    return domainsChanged || archetypesChanged || pagesChanged || curatedChanged || sourceChanged || searchChanged;
   };
 
   // Apply filters
@@ -111,7 +114,8 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
       archetypes: tempArchetypes,
       pages: tempPages,
       curated: tempCurated,
-      source: tempSource
+      source: tempSource,
+      search: tempSearch
     });
   };
 
@@ -122,17 +126,19 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     setTempPages([]);
     setTempCurated(false);
     setTempSource('all');
+    setTempSearch('');
     onApplyFilters({
       domains: [],
       archetypes: [],
       pages: [],
       curated: false,
-      source: 'all'
+      source: 'all',
+      search: ''
     });
   };
 
   // Check if any filters are active
-  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0 || tempPages.length > 0 || tempCurated || tempSource !== 'all';
+  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0 || tempPages.length > 0 || tempCurated || tempSource !== 'all' || tempSearch.trim() !== '';
 
   if (loading) {
     return (
@@ -168,6 +174,21 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
           onChange={setTempPages}
           icon="▼"
         />
+        <div className="search-input-wrapper">
+          <input
+            type="text"
+            className="feed-search-input"
+            placeholder="Search content..."
+            value={tempSearch}
+            onChange={(e) => setTempSearch(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleApply(); }}
+          />
+          {tempSearch && (
+            <button className="search-clear-btn" onClick={() => setTempSearch('')}>
+              &times;
+            </button>
+          )}
+        </div>
         <div className="source-toggle">
           {[
             { value: 'all', label: 'All' },
