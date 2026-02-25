@@ -226,6 +226,10 @@
     z-index: 10000;
   }
 
+  .filter-search-input {
+    font-size: 16px;
+  }
+
   .filter-options-list {
     max-height: calc(100vh - 250px);
   }
