@@ -214,41 +214,45 @@ const AssembledArticle = ({ article }) => {
     if (!firstFragment) return null;
 
     return (
-      <div className="assembled-article-card fragment-card">
-        <div className="fragment-image-wrapper">
-          <FragmentImage
-            fragmentId={firstFragment.fragment_id}
-            archetype={firstFragment.archetype}
-            domain={domain}
-          />
-        </div>
-        <div className="assembled-article-meta">
-          <span className="assembled-article-domain">{domain}</span>
-          <span className="assembled-article-badge">article</span>
+      <div className="fragment-card assembled-article-card">
+        <div className="fragment-card-content">
+          <div className="fragment-image-wrapper">
+            <FragmentImage
+              fragmentId={firstFragment.fragment_id}
+              archetype={firstFragment.archetype}
+              domain={domain}
+            />
+          </div>
+          <div className="fragment-metadata">
+            <div className="fragment-archetype-badge">Article</div>
+            <div className="fragment-domain">{domain}</div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="assembled-article-card fragment-card">
-      {isLoading ? (
-        <div className="assembled-article-placeholder">
-          <div className="assembled-article-skeleton">
-            <div className="assembled-article-icon">A</div>
-            <div className="assembled-article-label">
-              {fragment_count} section{fragment_count !== 1 ? 's' : ''}
+    <div ref={containerRef} className="fragment-card assembled-article-card">
+      <div className="fragment-card-content">
+        {isLoading ? (
+          <div className="assembled-article-placeholder">
+            <div className="assembled-article-skeleton">
+              <div className="assembled-article-icon">A</div>
+              <div className="assembled-article-label">
+                {fragment_count} section{fragment_count !== 1 ? 's' : ''}
+              </div>
             </div>
           </div>
+        ) : (
+          <div className="assembled-article-wrapper">
+            <div ref={shadowHostRef} className="assembled-article-shadow-host" />
+          </div>
+        )}
+        <div className="fragment-metadata">
+          <div className="fragment-archetype-badge">Article</div>
+          <div className="fragment-domain">{domain}</div>
         </div>
-      ) : (
-        <div className="assembled-article-wrapper">
-          <div ref={shadowHostRef} className="assembled-article-shadow-host" />
-        </div>
-      )}
-      <div className="assembled-article-meta">
-        <span className="assembled-article-domain">{domain}</span>
-        <span className="assembled-article-badge">article</span>
       </div>
     </div>
   );

@@ -2,22 +2,13 @@
  * AssembledArticle Component Styles
  *
  * Container styling for assembled article cards in the feed.
- * Based on ArticleEmbed.css patterns.
+ * Uses .fragment-card + .fragment-card-content from Feed.css for layout/centering.
  */
-
-/* Card container - uses fragment-card class for keyboard nav compatibility */
-.assembled-article-card {
-  position: relative;
-  width: 90%;
-  max-width: 800px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
 /* Wrapper with scrollability for long articles */
 .assembled-article-wrapper {
-  width: 100%;
+  width: 90%;
+  max-width: 800px;
   max-height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -50,33 +41,6 @@
 /* Shadow DOM host */
 .assembled-article-shadow-host {
   width: 100%;
-}
-
-/* Source metadata bar */
-.assembled-article-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  width: 100%;
-  max-width: 800px;
-}
-
-.assembled-article-domain {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.02em;
-}
-
-.assembled-article-badge {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.08);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-weight: 600;
 }
 
 /* Loading placeholder */
@@ -128,11 +92,8 @@
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
-  .assembled-article-card {
-    width: 95%;
-  }
-
   .assembled-article-wrapper {
+    width: 95%;
     max-height: 75vh;
     border-radius: 8px;
   }
