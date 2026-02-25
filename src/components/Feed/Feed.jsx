@@ -46,6 +46,10 @@ const Feed = () => {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Ignore shortcuts when typing in an input/textarea
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+
       if (!feedRef.current) return;
 
       const cards = feedRef.current.querySelectorAll('.fragment-card');
