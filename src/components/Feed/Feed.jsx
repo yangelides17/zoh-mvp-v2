@@ -145,11 +145,6 @@ const Feed = () => {
     <div className="feed-container" ref={feedRef}>
       {/* Header */}
       <div className="feed-header">
-        {process.env.REACT_APP_LANDING_URL && (
-          <a href={process.env.REACT_APP_LANDING_URL} className="back-to-zoh">
-            &larr; ZOH
-          </a>
-        )}
         <div className="feed-branding">
           <h1 className="feed-title">ZOH Feed</h1>
           <div className="live-indicator">
@@ -163,15 +158,6 @@ const Feed = () => {
           onApplyFilters={applyFilters}
           currentFilters={filters}
         />
-
-        <div className="feed-controls">
-          <button onClick={refresh} className="refresh-button" title="Refresh feed (R)">
-            ↻
-          </button>
-          <div className="fragment-count">
-            {fragments.length} fragment{fragments.length !== 1 ? 's' : ''}
-          </div>
-        </div>
       </div>
 
       {/* Fragment Cards */}
