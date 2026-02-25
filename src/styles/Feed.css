@@ -632,12 +632,146 @@
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
+
+  /* --- Header: two-row layout --- */
   .feed-header {
-    padding: 10px 15px;
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.95);
+  }
+
+  .back-to-zoh {
+    padding: 5px 10px;
+    font-size: 0; /* hide "ZOH" text */
+  }
+
+  .back-to-zoh .back-arrow {
+    font-size: 14px; /* keep arrow visible */
+  }
+
+  .feed-branding {
+    gap: 8px;
   }
 
   .feed-title {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  .live-indicator {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .live-text {
+    font-size: 11px;
+  }
+
+  /* --- Filter bar: own row + horizontal scroll --- */
+  .filter-bar {
+    width: 100%;
+    order: 99;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding: 4px 0 2px;
+    flex-wrap: nowrap;
+  }
+
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-bar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .filter-dropdowns {
+    flex-wrap: nowrap;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .filter-dropdown-button {
+    padding: 6px 10px;
+    font-size: 12px;
+    gap: 5px;
+  }
+
+  .source-toggle-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .curated-toggle {
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .search-input-wrapper {
+    flex-shrink: 0;
+  }
+
+  .feed-search-input {
+    width: 140px;
+    font-size: 12px;
+    padding: 5px 24px 5px 10px;
+  }
+
+  .feed-search-input:focus {
+    width: 180px;
+  }
+
+  .filter-actions {
+    position: sticky;
+    right: 0;
+    flex-shrink: 0;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.95);
+    padding-left: 12px;
+    box-shadow: -8px 0 12px rgba(0, 0, 0, 0.8);
+  }
+
+  .filter-apply-button {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .filter-clear-button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .feed-controls {
+    gap: 8px;
+  }
+
+  .refresh-button {
+    padding: 6px 10px;
+    font-size: 16px;
+  }
+
+  .fragment-count {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* --- Feed content: account for taller wrapped header --- */
+  .feed-content {
+    padding-top: 100px;
+  }
+
+  /* --- Feed items: better use of mobile screen width --- */
+  .fragment-image-wrapper {
+    max-width: 95%;
   }
 
   .fragment-metadata {
@@ -666,6 +800,13 @@
   .fragment-image-placeholder {
     width: 90vw;
     height: 60vh;
+  }
+
+  /* --- Video embeds: wider on mobile --- */
+  .fragment-card.video_player .video-embed-container,
+  .fragment-card.video_card .video-embed-container {
+    width: 95vw;
+    max-width: 95%;
   }
 }
 

@@ -205,11 +205,21 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .filter-dropdown-menu {
-    min-width: 200px;
-    max-width: calc(100vw - 40px);
+    position: fixed;
+    top: 90px;
+    bottom: auto;
+    left: 8px;
+    right: 8px;
+    min-width: unset;
+    max-width: unset;
+    width: auto;
+    max-height: calc(100vh - 110px);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    z-index: 1100;
   }
 
   .filter-options-list {
-    max-height: 250px;
+    max-height: calc(100vh - 250px);
   }
 }

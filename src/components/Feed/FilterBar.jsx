@@ -4,11 +4,12 @@
  * Container for filter dropdowns with Apply/Clear buttons
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import FilterDropdown from './FilterDropdown';
 import { fetchAvailableSites, fetchAvailableArchetypes, fetchAvailablePages } from '../../services/api';
 
 const FilterBar = ({ onApplyFilters, currentFilters }) => {
+  const filterBarRef = useRef(null);
   const [siteOptions, setSiteOptions] = useState([]);
   const [archetypeOptions, setArchetypeOptions] = useState([]);
   const [pageOptions, setPageOptions] = useState([]);
@@ -135,6 +136,10 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
       source: 'all',
       search: ''
     });
+    // Scroll filter bar back to the start
+    if (filterBarRef.current) {
+      filterBarRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
   };
 
   // Check if any filters are active
@@ -149,7 +154,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   }
 
   return (
-    <div className="filter-bar">
+    <div className="filter-bar" ref={filterBarRef}>
       <div className="filter-dropdowns">
         <FilterDropdown
           label="Sites"
