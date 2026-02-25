@@ -41,29 +41,6 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Back to ZOH link */
-.back-to-zoh {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 6px 14px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.back-to-zoh:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-}
-
 .feed-branding {
   display: flex;
   align-items: center;
@@ -228,36 +205,57 @@
   cursor: pointer;
 }
 
-.filter-bar-loading {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
-}
-
-.feed-controls {
+/* Search Input */
+.search-input-wrapper {
+  position: relative;
   display: flex;
-  gap: 15px;
   align-items: center;
 }
 
-.refresh-button {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.feed-search-input {
+  width: 200px;
+  padding: 6px 28px 6px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
   color: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.feed-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.feed-search-input:focus {
+  width: 280px;
+  border-color: rgba(91, 158, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 8px rgba(91, 158, 255, 0.2);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 16px;
   cursor: pointer;
-  font-size: 18px;
-  transition: all 0.2s;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s ease;
 }
 
-.refresh-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: rotate(180deg);
+.search-clear-btn:hover {
+  color: #fff;
 }
 
-.fragment-count {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
+.filter-bar-loading {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
 }
 
 /* Feed Content */
@@ -514,6 +512,10 @@
   text-align: center;
   padding: 40px;
   max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
 .error-icon,
@@ -580,12 +582,126 @@
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
+
+  /* --- Header: two-row layout --- */
   .feed-header {
-    padding: 10px 15px;
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+  }
+
+  .feed-branding {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
   }
 
   .feed-title {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  .live-indicator {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .live-text {
+    font-size: 11px;
+  }
+
+  /* --- Filter bar: own row + horizontal scroll --- */
+  .filter-bar {
+    width: 100%;
+    order: 99;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 4px 0 2px;
+    flex-wrap: nowrap;
+  }
+
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-bar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .filter-dropdowns {
+    flex-wrap: nowrap;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .filter-dropdown-button {
+    padding: 4px 8px;
+    font-size: 16px;
+    gap: 5px;
+  }
+
+  .source-toggle-btn {
+    padding: 3px 7px;
+    font-size: 16px;
+  }
+
+  .curated-toggle {
+    font-size: 16px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .search-input-wrapper {
+    flex-shrink: 0;
+  }
+
+  .feed-search-input {
+    width: 140px;
+    font-size: 16px;
+    padding: 4px 24px 4px 8px;
+  }
+
+  .feed-search-input:focus {
+    width: 180px;
+  }
+
+  .filter-actions {
+    position: sticky;
+    right: 0;
+    flex-shrink: 0;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.95);
+    padding-left: 12px;
+    box-shadow: -8px 0 12px rgba(0, 0, 0, 0.8);
+  }
+
+  .filter-apply-button {
+    padding: 4px 10px;
+    font-size: 16px;
+  }
+
+  .filter-clear-button {
+    padding: 4px 8px;
+    font-size: 16px;
+  }
+
+  /* --- Feed content: account for taller wrapped header --- */
+  .feed-content {
+    padding-top: 100px;
+  }
+
+  /* --- Feed items: better use of mobile screen width --- */
+  .fragment-image-wrapper {
+    max-width: 95%;
   }
 
   .fragment-metadata {
@@ -614,6 +730,13 @@
   .fragment-image-placeholder {
     width: 90vw;
     height: 60vh;
+  }
+
+  /* --- Video embeds: wider on mobile --- */
+  .fragment-card.video_player .video-embed-container,
+  .fragment-card.video_card .video-embed-container {
+    width: 95vw;
+    max-width: 95%;
   }
 }
 

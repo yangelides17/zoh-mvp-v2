@@ -204,12 +204,33 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  .filter-dropdown {
+    position: static;
+  }
+
   .filter-dropdown-menu {
-    min-width: 200px;
-    max-width: calc(100vw - 40px);
+    position: fixed;
+    top: 90px;
+    bottom: auto;
+    left: 8px;
+    right: 8px;
+    min-width: unset;
+    max-width: unset;
+    width: auto;
+    max-height: calc(100vh - 110px);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgb(20, 20, 20);
+    z-index: 10000;
+  }
+
+  .filter-search-input {
+    font-size: 16px;
   }
 
   .filter-options-list {
-    max-height: 250px;
+    max-height: calc(100vh - 250px);
   }
 }

@@ -32,7 +32,8 @@ export const useFeedData = () => {
     archetypes: [],
     pages: [],
     curated: false,
-    source: 'all'
+    source: 'all',
+    search: ''
   });
 
   /**
@@ -43,7 +44,7 @@ export const useFeedData = () => {
     setError(null);
 
     try {
-      const data = await fetchArticles(20, null, filters.domains, filters.archetypes, randomSeed, filters.curated, filters.source, filters.pages);
+      const data = await fetchArticles(20, null, filters.domains, filters.archetypes, randomSeed, filters.curated, filters.source, filters.pages, filters.search);
       setItems(data.items || []);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
@@ -53,7 +54,7 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters.domains, filters.archetypes, filters.pages, filters.curated, filters.source, randomSeed]);
+  }, [filters.domains, filters.archetypes, filters.pages, filters.curated, filters.source, filters.search, randomSeed]);
 
   /**
    * Load more feed items (for infinite scroll)
@@ -66,7 +67,7 @@ export const useFeedData = () => {
     setError(null);
 
     try {
-      const data = await fetchArticles(20, cursor, filters.domains, filters.archetypes, randomSeed, filters.curated, filters.source, filters.pages);
+      const data = await fetchArticles(20, cursor, filters.domains, filters.archetypes, randomSeed, filters.curated, filters.source, filters.pages, filters.search);
       setItems(prev => [...prev, ...(data.items || [])]);
       setCursor(data.next_cursor);
       setHasMore(data.has_more);
@@ -76,7 +77,7 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
-  }, [cursor, hasMore, loading, filters.domains, filters.archetypes, filters.pages, filters.curated, filters.source, randomSeed]);
+  }, [cursor, hasMore, loading, filters.domains, filters.archetypes, filters.pages, filters.curated, filters.source, filters.search, randomSeed]);
 
   /**
    * Apply new filters and reload feed

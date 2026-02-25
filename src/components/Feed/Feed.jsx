@@ -49,6 +49,10 @@ const Feed = () => {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Ignore shortcuts when typing in an input/textarea
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+
       if (!feedRef.current) return;
 
       const cards = feedRef.current.querySelectorAll('.fragment-card');
@@ -110,6 +114,15 @@ const Feed = () => {
     );
   }
 
+  // Check if any filters are active
+  const hasActiveFilters = filters.domains.length > 0 || filters.archetypes.length > 0 ||
+    filters.pages.length > 0 || filters.curated || filters.source !== 'all' ||
+    (filters.search && filters.search.trim() !== '');
+
+  const clearAllFilters = () => {
+    applyFilters({ domains: [], archetypes: [], pages: [], curated: false, source: 'all', search: '' });
+  };
+
   // Empty state
   if (!loading && items.length === 0) {
     return (
@@ -117,7 +130,12 @@ const Feed = () => {
         <div className="empty-content">
           <div className="empty-icon">📦</div>
           <h2>No Fragments Found</h2>
-          <p>No labeled fragments available in the database yet.</p>
+          <p>{hasActiveFilters ? 'No fragments match your current filters.' : 'No labeled fragments available in the database yet.'}</p>
+          {hasActiveFilters && (
+            <button onClick={clearAllFilters} className="retry-button">
+              Clear Filters
+            </button>
+          )}
           <button onClick={refresh} className="retry-button">
             Refresh
           </button>
@@ -130,11 +148,6 @@ const Feed = () => {
     <div className="feed-container" ref={feedRef}>
       {/* Header */}
       <div className="feed-header">
-        {process.env.REACT_APP_LANDING_URL && (
-          <a href={process.env.REACT_APP_LANDING_URL} className="back-to-zoh">
-            &larr; ZOH
-          </a>
-        )}
         <div className="feed-branding">
           <h1 className="feed-title">ZOH Feed</h1>
           <div className="live-indicator">
@@ -148,15 +161,6 @@ const Feed = () => {
           onApplyFilters={applyFilters}
           currentFilters={filters}
         />
-
-        <div className="feed-controls">
-          <button onClick={refresh} className="refresh-button" title="Refresh feed (R)">
-            ↻
-          </button>
-          <div className="fragment-count">
-            {items.length} item{items.length !== 1 ? 's' : ''}
-          </div>
-        </div>
       </div>
 
       {/* Feed Items */}
