@@ -208,6 +208,14 @@ const AssembledArticle = ({ article }) => {
 
   }, [htmlData]);
 
+  // Navigate to origin URL when metadata is clicked
+  const handleMetadataClick = (e) => {
+    e.stopPropagation();
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   // Fallback to screenshot of first fragment if no HTML
   if (!has_html || hasError) {
     const firstFragment = fragments?.[0];
@@ -223,9 +231,13 @@ const AssembledArticle = ({ article }) => {
               domain={domain}
             />
           </div>
-          <div className="fragment-metadata">
+          <div className="fragment-metadata" onClick={handleMetadataClick}>
             <div className="fragment-archetype-badge">Article</div>
             <div className="fragment-domain">{domain}</div>
+          </div>
+          <div className="fragment-hint" onClick={handleMetadataClick}>
+            <span className="hint-icon">↗</span>
+            <span className="hint-text">Click to open source</span>
           </div>
         </div>
       </div>
@@ -249,9 +261,13 @@ const AssembledArticle = ({ article }) => {
             <div ref={shadowHostRef} className="assembled-article-shadow-host" />
           </div>
         )}
-        <div className="fragment-metadata">
+        <div className="fragment-metadata" onClick={handleMetadataClick}>
           <div className="fragment-archetype-badge">Article</div>
           <div className="fragment-domain">{domain}</div>
+        </div>
+        <div className="fragment-hint" onClick={handleMetadataClick}>
+          <span className="hint-icon">↗</span>
+          <span className="hint-text">Click to open source</span>
         </div>
       </div>
     </div>

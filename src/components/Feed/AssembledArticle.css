@@ -43,6 +43,14 @@
   width: 100%;
 }
 
+/* Ensure metadata and hint sit above the article wrapper */
+.assembled-article-card .fragment-metadata,
+.assembled-article-card .fragment-hint {
+  z-index: 20;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
 /* Loading placeholder */
 .assembled-article-placeholder {
   width: 90%;
