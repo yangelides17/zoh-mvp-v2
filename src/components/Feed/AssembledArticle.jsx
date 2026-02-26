@@ -16,7 +16,7 @@ import FragmentImage from './FragmentImage';
 import './AssembledArticle.css';
 
 const AssembledArticle = ({ article }) => {
-  const { page_id, domain, url, has_html, fragments, fragment_count } = article;
+  const { page_id, domain, url, has_html, fragments, fragment_count, page_number } = article;
 
   const [shouldLoad, setShouldLoad] = useState(false);
   const [htmlData, setHtmlData] = useState(null);
@@ -232,7 +232,7 @@ const AssembledArticle = ({ article }) => {
             />
           </div>
           <div className="fragment-metadata" onClick={handleMetadataClick}>
-            <div className="fragment-archetype-badge">Article</div>
+            <div className="fragment-archetype-badge">Article{page_number ? ` · Page ${page_number}` : ''}</div>
             <div className="fragment-domain">{domain}</div>
           </div>
           <div className="fragment-hint" onClick={handleMetadataClick}>
@@ -262,7 +262,7 @@ const AssembledArticle = ({ article }) => {
           </div>
         )}
         <div className="fragment-metadata" onClick={handleMetadataClick}>
-          <div className="fragment-archetype-badge">Article</div>
+          <div className="fragment-archetype-badge">Article{page_number ? ` · Page ${page_number}` : ''}</div>
           <div className="fragment-domain">{domain}</div>
         </div>
         <div className="fragment-hint" onClick={handleMetadataClick}>
