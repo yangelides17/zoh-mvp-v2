@@ -20,16 +20,16 @@ import { fetchFragmentHtml } from '../../services/api';
 import FragmentImage from './FragmentImage';
 import './ArticleEmbed.css';
 
-// Archetypes eligible for HTML rendering
-const ARTICLE_ARCHETYPES = new Set([
+// Archetypes that render via shadow DOM + cleaned HTML
+const HTML_EMBED_ARCHETYPES = new Set([
   'article', 'article_media', 'page_content', 'page_media',
   'code_block', 'social_post', 'comment', 'feed_item', 'product_card'
 ]);
 
 /**
- * Check if an archetype should attempt HTML rendering
+ * Check if an archetype should render via shadow DOM + cleaned HTML
  */
-export const isArticleArchetype = (archetype) => ARTICLE_ARCHETYPES.has(archetype);
+export const isHtmlEmbedArchetype = (archetype) => HTML_EMBED_ARCHETYPES.has(archetype);
 
 const ArticleEmbed = ({ fragmentId, archetype, domain, url, hasHtml, bbox }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
