@@ -5,15 +5,47 @@
  * Displays fragment as video embed, interactive HTML article, or screenshot
  */
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import FragmentImage from './FragmentImage';
 import VideoEmbed from './VideoEmbed';
 import VideoCardEmbed from './VideoCardEmbed';
 import ArticleEmbed, { isHtmlEmbedArchetype } from './ArticleEmbed';
 import { parseVideoUrl } from '../../utils/videoParser';
+import { useEngagement } from '../../hooks/useEngagement';
 
 const FragmentCard = ({ fragment, index }) => {
+  const cardRef = useRef(null);
+  const engagement = useEngagement();
+
+  // Visibility / dwell tracking
+  useEffect(() => {
+    if (!engagement || !cardRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          engagement.onVisible(fragment.fragment_id, entry.intersectionRatio);
+        } else {
+          engagement.onHidden(fragment.fragment_id);
+        }
+      },
+      { threshold: [0, 0.5, 1.0] }
+    );
+
+    observer.observe(cardRef.current);
+
+    return () => {
+      observer.disconnect();
+      engagement.onHidden(fragment.fragment_id);
+    };
+  }, [fragment.fragment_id, engagement]);
+
   const handleClick = (e) => {
+    // Track click engagement
+    if (engagement) {
+      engagement.onClick(fragment.fragment_id);
+    }
+
     // Prevent opening source URL if user clicked on video iframe
     if (e.target.tagName === 'IFRAME' || e.target.closest('.video-embed-container')) {
       return;
@@ -58,6 +90,7 @@ const FragmentCard = ({ fragment, index }) => {
 
   return (
     <div
+      ref={cardRef}
       className={`fragment-card ${fragment.archetype}`}
       data-index={index}
       data-fragment-id={fragment.fragment_id}

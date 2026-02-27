@@ -8,6 +8,7 @@
 
 import React, { useEffect, useCallback, useRef } from 'react';
 import useFeedData from '../../hooks/useFeedData';
+import { EngagementProvider } from '../../hooks/useEngagement';
 import FragmentCard from './FragmentCard';
 import AssembledArticle from './AssembledArticle';
 import FilterBar from './FilterBar';
@@ -145,66 +146,68 @@ const Feed = () => {
   }
 
   return (
-    <div className="feed-container" ref={feedRef}>
-      {/* Header */}
-      <div className="feed-header">
-        <div className="feed-branding">
-          <h1 className="feed-title">ZOH Feed</h1>
-          <div className="live-indicator">
-            <div className="live-dot"></div>
-            <span className="live-text">LIVE</span>
+    <EngagementProvider feedRef={feedRef}>
+      <div className="feed-container" ref={feedRef}>
+        {/* Header */}
+        <div className="feed-header">
+          <div className="feed-branding">
+            <h1 className="feed-title">ZOH Feed</h1>
+            <div className="live-indicator">
+              <div className="live-dot"></div>
+              <span className="live-text">LIVE</span>
+            </div>
           </div>
+
+          {/* Filter Bar */}
+          <FilterBar
+            onApplyFilters={applyFilters}
+            currentFilters={filters}
+          />
         </div>
 
-        {/* Filter Bar */}
-        <FilterBar
-          onApplyFilters={applyFilters}
-          currentFilters={filters}
-        />
-      </div>
-
-      {/* Feed Items */}
-      <div className="feed-content">
-        {items.map((item, index) => (
-          item.type === 'article' ? (
-            <AssembledArticle
-              key={`article-${item.article_id}`}
-              article={item}
-            />
-          ) : (
-            <FragmentCard
-              key={item.fragment_id}
-              fragment={item}
-              index={index}
-            />
-          )
-        ))}
-      </div>
-
-      {/* Loading More Indicator */}
-      {loading && items.length > 0 && (
-        <div className="feed-loading-more">
-          <div className="loading-spinner-small"></div>
-          <span>Loading more...</span>
+        {/* Feed Items */}
+        <div className="feed-content">
+          {items.map((item, index) => (
+            item.type === 'article' ? (
+              <AssembledArticle
+                key={`article-${item.article_id}`}
+                article={item}
+              />
+            ) : (
+              <FragmentCard
+                key={item.fragment_id}
+                fragment={item}
+                index={index}
+              />
+            )
+          ))}
         </div>
-      )}
 
-      {/* End of Feed */}
-      {!hasMore && items.length > 0 && (
-        <div className="feed-end">
-          <p>You've reached the end!</p>
-          <button onClick={refresh} className="retry-button">
-            Back to Top
-          </button>
+        {/* Loading More Indicator */}
+        {loading && items.length > 0 && (
+          <div className="feed-loading-more">
+            <div className="loading-spinner-small"></div>
+            <span>Loading more...</span>
+          </div>
+        )}
+
+        {/* End of Feed */}
+        {!hasMore && items.length > 0 && (
+          <div className="feed-end">
+            <p>You've reached the end!</p>
+            <button onClick={refresh} className="retry-button">
+              Back to Top
+            </button>
+          </div>
+        )}
+
+        {/* Keyboard Shortcuts Hint */}
+        <div className="keyboard-hints">
+          <span className="hint-item">↑/↓ or J/K: Navigate</span>
+          <span className="hint-item">R: Refresh</span>
         </div>
-      )}
-
-      {/* Keyboard Shortcuts Hint */}
-      <div className="keyboard-hints">
-        <span className="hint-item">↑/↓ or J/K: Navigate</span>
-        <span className="hint-item">R: Refresh</span>
       </div>
-    </div>
+    </EngagementProvider>
   );
 };
 

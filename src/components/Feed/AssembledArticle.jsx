@@ -13,6 +13,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import { fetchArticleHtml } from '../../services/api';
 import FragmentImage from './FragmentImage';
+import { useEngagement } from '../../hooks/useEngagement';
 import './AssembledArticle.css';
 
 const AssembledArticle = ({ article }) => {
@@ -25,6 +26,9 @@ const AssembledArticle = ({ article }) => {
   const containerRef = useRef(null);
   const shadowHostRef = useRef(null);
   const shadowRootRef = useRef(null);
+  const wrapperRef = useRef(null);
+  const fragmentObserverRef = useRef(null);
+  const engagement = useEngagement();
 
   // Lazy load: only fetch HTML when near viewport
   useEffect(() => {
@@ -208,6 +212,107 @@ const AssembledArticle = ({ article }) => {
 
   }, [htmlData]);
 
+  // Card-level visibility tracking (is this article card active in the snap scroll?)
+  useEffect(() => {
+    if (!engagement || !containerRef.current) return;
+
+    // Use first fragment ID as the card-level tracking target if no sentinels
+    const fallbackId = fragments?.[0]?.fragment_id;
+    if (!fallbackId) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          // Card is visible — sentinel observers handle per-fragment tracking.
+          // If no sentinel observers set up yet, track at card level.
+          if (!fragmentObserverRef.current) {
+            engagement.onVisible(fallbackId, entry.intersectionRatio);
+          }
+        } else {
+          // Card left viewport — end all fragment dwells
+          if (!fragmentObserverRef.current && fallbackId) {
+            engagement.onHidden(fallbackId);
+          }
+          if (htmlData?.fragment_ids) {
+            for (const fid of htmlData.fragment_ids) {
+              engagement.onHidden(fid);
+            }
+          }
+        }
+      },
+      { threshold: [0, 0.5, 1.0] }
+    );
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      observer.disconnect();
+      // End all dwells on unmount
+      if (!fragmentObserverRef.current && fallbackId) {
+        engagement.onHidden(fallbackId);
+      }
+      if (htmlData?.fragment_ids) {
+        for (const fid of htmlData.fragment_ids) {
+          engagement.onHidden(fid);
+        }
+      }
+    };
+  }, [engagement, fragments, htmlData]);
+
+  // Per-fragment sentinel observers inside Shadow DOM
+  useEffect(() => {
+    const shadow = shadowRootRef.current;
+    if (!shadow || !engagement || !wrapperRef.current) return;
+
+    const sentinels = shadow.querySelectorAll('[data-zoh-fid]');
+    if (sentinels.length === 0) return;
+
+    const fragmentObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const fid = entry.target.getAttribute('data-zoh-fid');
+          if (!fid) continue;
+
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
+            engagement.onVisible(fid, entry.intersectionRatio);
+          } else {
+            engagement.onHidden(fid);
+          }
+        }
+      },
+      {
+        root: wrapperRef.current,
+        threshold: [0, 0.3, 0.5, 0.8, 1.0],
+      }
+    );
+
+    sentinels.forEach(sentinel => fragmentObserver.observe(sentinel));
+    fragmentObserverRef.current = fragmentObserver;
+
+    // Click delegation: find nearest sentinel and track click
+    const handleShadowClick = (e) => {
+      const sentinel = e.target.closest('[data-zoh-fid]');
+      if (sentinel) {
+        engagement.onClick(sentinel.getAttribute('data-zoh-fid'));
+      } else if (htmlData?.fragment_ids?.[0]) {
+        engagement.onClick(htmlData.fragment_ids[0]);
+      }
+    };
+
+    shadow.addEventListener('click', handleShadowClick);
+
+    return () => {
+      fragmentObserver.disconnect();
+      fragmentObserverRef.current = null;
+      shadow.removeEventListener('click', handleShadowClick);
+      if (htmlData?.fragment_ids) {
+        for (const fid of htmlData.fragment_ids) {
+          engagement.onHidden(fid);
+        }
+      }
+    };
+  }, [htmlData, engagement]);
+
   // Navigate to origin URL when metadata is clicked
   const handleMetadataClick = (e) => {
     e.stopPropagation();
@@ -257,7 +362,7 @@ const AssembledArticle = ({ article }) => {
             </div>
           </div>
         ) : (
-          <div className="assembled-article-wrapper">
+          <div ref={wrapperRef} className="assembled-article-wrapper">
             <div ref={shadowHostRef} className="assembled-article-shadow-host" />
           </div>
         )}

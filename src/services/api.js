@@ -224,6 +224,25 @@ export const cacheDestinationUrl = async (fragmentId, destinationUrl) => {
 };
 
 /**
+ * Send engagement events to the backend
+ * @param {string} userId - Anonymous user ID
+ * @param {Array} events - Array of engagement event objects
+ * @returns {Promise<{success: boolean, processed: number}>}
+ */
+export const sendEngagementEvents = async (userId, events) => {
+  try {
+    const response = await api.post('/api/feed/engage', {
+      user_id: userId,
+      events,
+    });
+    return response.data;
+  } catch (error) {
+    console.warn('Engagement tracking failed:', error.message);
+    return { success: false, processed: 0 };
+  }
+};
+
+/**
  * Health check
  * @returns {Promise<{status: string, service: string}>}
  */
