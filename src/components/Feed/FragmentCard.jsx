@@ -9,7 +9,7 @@ import React from 'react';
 import FragmentImage from './FragmentImage';
 import VideoEmbed from './VideoEmbed';
 import VideoCardEmbed from './VideoCardEmbed';
-import ArticleEmbed, { isArticleArchetype } from './ArticleEmbed';
+import ArticleEmbed, { isHtmlEmbedArchetype } from './ArticleEmbed';
 import { parseVideoUrl } from '../../utils/videoParser';
 
 const FragmentCard = ({ fragment, index }) => {
@@ -53,8 +53,8 @@ const FragmentCard = ({ fragment, index }) => {
   const isVideoCard = fragment.archetype === 'video_card'
     && (fragment.has_html || fragment.destination_url);
 
-  // Check if this is an article-type archetype with HTML available
-  const isArticle = isArticleArchetype(fragment.archetype) && fragment.has_html;
+  // Check if this archetype should render via shadow DOM + cleaned HTML
+  const isHtmlEmbed = isHtmlEmbedArchetype(fragment.archetype) && fragment.has_html;
 
   return (
     <div
@@ -78,7 +78,7 @@ const FragmentCard = ({ fragment, index }) => {
             domain={fragment.domain}
             destinationUrl={fragment.destination_url}
           />
-        ) : isArticle ? (
+        ) : isHtmlEmbed ? (
           <ArticleEmbed
             fragmentId={fragment.fragment_id}
             archetype={fragment.archetype}

@@ -1,0 +1,118 @@
+/**
+ * AssembledArticle Component Styles
+ *
+ * Container styling for assembled article cards in the feed.
+ * Uses .fragment-card + .fragment-card-content from Feed.css for layout/centering.
+ */
+
+/* Wrapper with scrollability for long articles */
+.assembled-article-wrapper {
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.assembled-article-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.assembled-article-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.assembled-article-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.assembled-article-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Shadow DOM host */
+.assembled-article-shadow-host {
+  width: 100%;
+}
+
+/* Ensure metadata and hint sit above the article wrapper */
+.assembled-article-card .fragment-metadata,
+.assembled-article-card .fragment-hint {
+  z-index: 20;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Loading placeholder */
+.assembled-article-placeholder {
+  width: 90%;
+  max-width: 800px;
+  height: 400px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.assembled-article-skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+  background-size: 200% 100%;
+  animation: assembled-skeleton-pulse 1.5s ease-in-out infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 12px;
+}
+
+@keyframes assembled-skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.assembled-article-icon {
+  font-size: 3rem;
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.6;
+  font-weight: bold;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.assembled-article-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .assembled-article-wrapper {
+    width: 95%;
+    max-height: 75vh;
+    border-radius: 8px;
+  }
+
+  .assembled-article-placeholder {
+    width: 95%;
+    height: 300px;
+    border-radius: 8px;
+  }
+
+  .assembled-article-icon {
+    font-size: 2rem;
+  }
+}
