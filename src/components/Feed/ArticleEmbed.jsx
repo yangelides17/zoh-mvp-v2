@@ -23,7 +23,7 @@ import './ArticleEmbed.css';
 // Archetypes that render via shadow DOM + cleaned HTML
 const HTML_EMBED_ARCHETYPES = new Set([
   'article', 'article_media', 'page_content', 'page_media',
-  'code_block', 'social_post', 'comment', 'feed_item', 'product_card'
+  'code_block', 'comment', 'feed_item', 'product_card'
 ]);
 
 /**
