@@ -1,24 +1,24 @@
 /**
- * VideoCardEmbed Component
+ * MediaCardEmbed Component
  *
- * Orchestrates video_card fragment rendering:
- * 1. If destination_url is cached → parse and render VideoEmbed immediately
- * 2. Otherwise, lazy-fetch HTML → extract URL → render VideoEmbed + cache
+ * Orchestrates video_card/audio_card fragment rendering:
+ * 1. If destination_url is cached → parse and render MediaEmbed immediately
+ * 2. Otherwise, lazy-fetch HTML → extract URL → render MediaEmbed + cache
  * 3. Falls back to FragmentImage (screenshot) on any failure
  *
  * Follows the same cancelled-flag async pattern as ArticleEmbed.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import VideoEmbed from './VideoEmbed';
+import MediaEmbed from './MediaEmbed';
 import FragmentImage from './FragmentImage';
 import { fetchFragmentHtml, cacheDestinationUrl } from '../../services/api';
-import { parseVideoUrl } from '../../utils/videoParser';
-import { extractVideoUrl } from '../../utils/extractVideoUrl';
-import './VideoCardEmbed.css';
+import { parseMediaUrl } from '../../utils/mediaParser';
+import { extractMediaUrl } from '../../utils/extractMediaUrl';
+import './MediaCardEmbed.css';
 
-const VideoCardEmbed = ({ fragmentId, archetype, domain, destinationUrl }) => {
-  const [videoData, setVideoData] = useState(null);
+const MediaCardEmbed = ({ fragmentId, archetype, domain, destinationUrl }) => {
+  const [mediaData, setMediaData] = useState(null);
   const [fallback, setFallback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef(null);
@@ -27,9 +27,9 @@ const VideoCardEmbed = ({ fragmentId, archetype, domain, destinationUrl }) => {
   useEffect(() => {
     if (!destinationUrl) return;
 
-    const parsed = parseVideoUrl(destinationUrl);
+    const parsed = parseMediaUrl(destinationUrl);
     if (parsed) {
-      setVideoData(parsed);
+      setMediaData(parsed);
       setIsLoading(false);
     } else {
       setFallback(true);
@@ -54,11 +54,11 @@ const VideoCardEmbed = ({ fragmentId, archetype, domain, destinationUrl }) => {
             const data = await fetchFragmentHtml(fragmentId);
             if (cancelled) return;
 
-            const result = extractVideoUrl(data.html);
+            const result = extractMediaUrl(data.html);
             if (cancelled) return;
 
             if (result) {
-              setVideoData(result.videoData);
+              setMediaData(result.mediaData);
               setIsLoading(false);
 
               // Cache for next time (fire-and-forget)
@@ -106,18 +106,18 @@ const VideoCardEmbed = ({ fragmentId, archetype, domain, destinationUrl }) => {
   }
 
   return (
-    <div ref={containerRef} className="video-card-embed-container">
+    <div ref={containerRef} className="media-card-embed-container">
       {isLoading ? (
-        <div className="video-card-placeholder">
-          <div className="video-loading-skeleton">
+        <div className="media-card-placeholder">
+          <div className="media-loading-skeleton">
             <div className="play-icon">&#9654;</div>
-            <div className="platform-badge">video</div>
+            <div className="platform-badge">media</div>
           </div>
         </div>
-      ) : videoData ? (
-        <VideoEmbed
-          embedUrl={videoData.embedUrl}
-          platform={videoData.platform}
+      ) : mediaData ? (
+        <MediaEmbed
+          embedUrl={mediaData.embedUrl}
+          platform={mediaData.platform}
           domain={domain}
           archetype={archetype}
         />
@@ -126,4 +126,4 @@ const VideoCardEmbed = ({ fragmentId, archetype, domain, destinationUrl }) => {
   );
 };
 
-export default VideoCardEmbed;
+export default MediaCardEmbed;

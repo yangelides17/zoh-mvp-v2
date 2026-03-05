@@ -7,10 +7,10 @@
 
 import React, { useRef, useEffect } from 'react';
 import FragmentImage from './FragmentImage';
-import VideoEmbed from './VideoEmbed';
-import VideoCardEmbed from './VideoCardEmbed';
+import MediaEmbed from './MediaEmbed';
+import MediaCardEmbed from './MediaCardEmbed';
 import ArticleEmbed, { isHtmlEmbedArchetype } from './ArticleEmbed';
-import { parseVideoUrl } from '../../utils/videoParser';
+import { parseMediaUrl } from '../../utils/mediaParser';
 import { useEngagement } from '../../hooks/useEngagement';
 
 const FragmentCard = ({ fragment, index }) => {
@@ -46,8 +46,8 @@ const FragmentCard = ({ fragment, index }) => {
       engagement.onClick(fragment.fragment_id);
     }
 
-    // Prevent opening source URL if user clicked on video iframe
-    if (e.target.tagName === 'IFRAME' || e.target.closest('.video-embed-container')) {
+    // Prevent opening source URL if user clicked on media iframe
+    if (e.target.tagName === 'IFRAME' || e.target.closest('.media-embed-container')) {
       return;
     }
 
@@ -56,8 +56,8 @@ const FragmentCard = ({ fragment, index }) => {
       return;
     }
 
-    // Prevent opening source URL if user clicked on video card embed
-    if (e.target.closest('.video-card-embed-container')) {
+    // Prevent opening source URL if user clicked on media card embed
+    if (e.target.closest('.media-card-embed-container')) {
       return;
     }
 
@@ -76,13 +76,12 @@ const FragmentCard = ({ fragment, index }) => {
       .join(' ');
   };
 
-  // Parse video URL for video_player archetype
-  const videoData = fragment.archetype === 'video_player'
-    ? parseVideoUrl(fragment.url)
-    : null;
+  // Parse media URL for video_player/audio_player archetypes
+  const isMediaPlayer = ['video_player', 'audio_player'].includes(fragment.archetype);
+  const mediaData = isMediaPlayer ? parseMediaUrl(fragment.url) : null;
 
-  // Check if this is a video_card with HTML or cached destination URL
-  const isVideoCard = fragment.archetype === 'video_card'
+  // Check if this is a video_card/audio_card with HTML or cached destination URL
+  const isMediaCard = ['video_card', 'audio_card'].includes(fragment.archetype)
     && (fragment.has_html || fragment.destination_url);
 
   // Check if this archetype should render via shadow DOM + cleaned HTML
@@ -96,16 +95,16 @@ const FragmentCard = ({ fragment, index }) => {
       data-fragment-id={fragment.fragment_id}
     >
       <div className="fragment-card-content" onClick={handleClick}>
-        {/* Four-way routing: VideoEmbed → VideoCardEmbed → ArticleEmbed → FragmentImage */}
-        {videoData ? (
-          <VideoEmbed
-            embedUrl={videoData.embedUrl}
-            platform={videoData.platform}
+        {/* Four-way routing: MediaEmbed → MediaCardEmbed → ArticleEmbed → FragmentImage */}
+        {mediaData ? (
+          <MediaEmbed
+            embedUrl={mediaData.embedUrl}
+            platform={mediaData.platform}
             domain={fragment.domain}
             archetype={fragment.archetype}
           />
-        ) : isVideoCard ? (
-          <VideoCardEmbed
+        ) : isMediaCard ? (
+          <MediaCardEmbed
             fragmentId={fragment.fragment_id}
             archetype={fragment.archetype}
             domain={fragment.domain}

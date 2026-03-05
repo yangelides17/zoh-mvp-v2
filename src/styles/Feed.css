@@ -733,61 +733,71 @@
   }
 
   /* --- Video embeds: wider on mobile --- */
-  .fragment-card.video_player .video-embed-container,
-  .fragment-card.video_card .video-embed-container {
+  .fragment-card.video_player .media-embed-container,
+  .fragment-card.video_card .media-embed-container {
     width: 95vw;
     max-width: 95%;
   }
 }
 
-/* Video-specific styles */
-.fragment-card.video_player .fragment-card-content {
-  cursor: default; /* Don't show pointer cursor for video cards */
-}
-
-.fragment-card.video_player .fragment-metadata {
-  cursor: pointer; /* Metadata area is clickable for source URL */
-  transition: opacity 0.2s;
-}
-
-.fragment-card.video_player .fragment-metadata:hover {
-  opacity: 0.9;
-}
-
-.fragment-card.video_player .fragment-hint {
-  bottom: 80px; /* Move hint up to avoid video controls */
-}
-
-/* Video embed container in feed context */
-.fragment-card.video_player .video-embed-container {
-  position: relative;
-  max-width: 90%;
-  max-height: 80vh;
-  width: 80vw; /* Give it an explicit width */
-  height: auto; /* Let aspect-ratio calculate height */
-  padding-bottom: 0; /* Override default aspect ratio in feed context */
-  aspect-ratio: 16 / 9; /* Modern CSS aspect ratio */
-}
-
-/* Video card styles — mirrors video_player for embedded video_card fragments */
-.fragment-card.video_card .fragment-card-content {
+/* Media-specific styles (video + audio players/cards) */
+.fragment-card.video_player .fragment-card-content,
+.fragment-card.audio_player .fragment-card-content {
   cursor: default;
 }
 
-.fragment-card.video_card .fragment-metadata {
+.fragment-card.video_player .fragment-metadata,
+.fragment-card.audio_player .fragment-metadata {
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.fragment-card.video_card .fragment-metadata:hover {
+.fragment-card.video_player .fragment-metadata:hover,
+.fragment-card.audio_player .fragment-metadata:hover {
   opacity: 0.9;
 }
 
-.fragment-card.video_card .fragment-hint {
+.fragment-card.video_player .fragment-hint,
+.fragment-card.audio_player .fragment-hint {
   bottom: 80px;
 }
 
-.fragment-card.video_card .video-embed-container {
+/* Media embed container in feed context */
+.fragment-card.video_player .media-embed-container,
+.fragment-card.audio_player .media-embed-container {
+  position: relative;
+  max-width: 90%;
+  max-height: 80vh;
+  width: 80vw;
+  height: auto;
+  padding-bottom: 0;
+  aspect-ratio: 16 / 9;
+}
+
+/* Media card styles — mirrors player styles for embedded card fragments */
+.fragment-card.video_card .fragment-card-content,
+.fragment-card.audio_card .fragment-card-content {
+  cursor: default;
+}
+
+.fragment-card.video_card .fragment-metadata,
+.fragment-card.audio_card .fragment-metadata {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.fragment-card.video_card .fragment-metadata:hover,
+.fragment-card.audio_card .fragment-metadata:hover {
+  opacity: 0.9;
+}
+
+.fragment-card.video_card .fragment-hint,
+.fragment-card.audio_card .fragment-hint {
+  bottom: 80px;
+}
+
+.fragment-card.video_card .media-embed-container,
+.fragment-card.audio_card .media-embed-container {
   position: relative;
   max-width: 90%;
   max-height: 80vh;
