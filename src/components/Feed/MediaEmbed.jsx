@@ -1,5 +1,5 @@
 /**
- * VideoEmbed Component
+ * MediaEmbed Component
  *
  * Renders media embeds with lazy loading and autoplay for YouTube, Vimeo, and Spotify.
  * Uses IntersectionObserver to load media when near viewport and autoplay when centered.
@@ -16,7 +16,7 @@ import {
   playController,
   pauseController,
 } from '../../utils/spotifyControllerPool';
-import './VideoEmbed.css';
+import './MediaEmbed.css';
 
 /**
  * Extract spotify URI from embed URL.
@@ -30,7 +30,7 @@ function getSpotifyUri(embedUrl) {
   return match ? `spotify:${match[1]}:${match[2]}` : null;
 }
 
-const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
+const MediaEmbed = ({ embedUrl, platform, domain, archetype }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [, setIsPlaying] = useState(false);
@@ -339,32 +339,32 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
 
   if (!embedUrl) {
     return (
-      <div className="video-error">
-        <p>Video embed URL not available</p>
-        <p className="video-platform-info">From {domain}</p>
+      <div className="media-error">
+        <p>Media embed URL not available</p>
+        <p className="media-platform-info">From {domain}</p>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className={`video-embed-container ${platform}`}>
+    <div ref={containerRef} className={`media-embed-container ${platform}`}>
       {!shouldLoad ? (
-        <div className="video-placeholder">
-          <div className="video-loading-skeleton">
+        <div className="media-placeholder">
+          <div className="media-loading-skeleton">
             <div className="play-icon">▶</div>
             <div className="platform-badge">{platform}</div>
           </div>
         </div>
       ) : hasError ? (
-        <div className="video-error">
+        <div className="media-error">
           <p>Unable to load {platform === 'spotify' ? 'audio' : 'video'}</p>
-          <p className="video-platform-info">
+          <p className="media-platform-info">
             {platform} from {domain}
           </p>
         </div>
       ) : platform === 'spotify' ? (
         // Spotify: SDK controller iframe gets reparented into this div when claimed
-        <div ref={spotifyContainerRef} className="video-embed-iframe">
+        <div ref={spotifyContainerRef} className="media-embed-iframe">
           {!hasController && (
             <div className="spotify-placeholder">
               <div className="platform-badge">spotify</div>
@@ -375,7 +375,7 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
         <iframe
           ref={iframeRef}
           src={embedUrl}
-          className="video-embed-iframe"
+          className="media-embed-iframe"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
           frameBorder="0"
@@ -388,4 +388,4 @@ const VideoEmbed = ({ embedUrl, platform, domain, archetype }) => {
   );
 };
 
-export default VideoEmbed;
+export default MediaEmbed;

@@ -17,7 +17,7 @@
  * parseVideoUrl('https://open.spotify.com/episode/7makk4oTQel546B0PZlDM5')
  * // Returns: { platform: 'spotify', videoId: '...', embedUrl: '...', thumbnailUrl: null }
  */
-export const parseVideoUrl = (url) => {
+export const parseMediaUrl = (url) => {
   if (!url || typeof url !== 'string') {
     return null;
   }
@@ -87,8 +87,8 @@ export const parseVideoUrl = (url) => {
  * isSupportedVideoUrl('https://www.youtube.com/watch?v=abc123') // true
  * isSupportedVideoUrl('https://example.com') // false
  */
-export const isSupportedVideoUrl = (url) => {
-  return parseVideoUrl(url) !== null;
+export const isSupportedMediaUrl = (url) => {
+  return parseMediaUrl(url) !== null;
 };
 
 /**
@@ -97,6 +97,6 @@ export const isSupportedVideoUrl = (url) => {
  * @returns {string|null} Platform name ('youtube', 'vimeo') or null
  */
 export const getPlatform = (url) => {
-  const videoData = parseVideoUrl(url);
-  return videoData ? videoData.platform : null;
+  const mediaData = parseMediaUrl(url);
+  return mediaData ? mediaData.platform : null;
 };

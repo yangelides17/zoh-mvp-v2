@@ -13,7 +13,7 @@
  * 5. Regex sweep for bare URLs (safety net)
  */
 
-import { parseVideoUrl } from './videoParser';
+import { parseMediaUrl } from './mediaParser';
 
 // Spotify content types ordered by embeddability
 // Tracks and episodes are the playable content we want
@@ -42,10 +42,10 @@ function getSpotifyPriority(url) {
  * Extract the best embeddable video/audio URL from HTML content.
  *
  * @param {string} html - Raw HTML string from fragment
- * @returns {{ url: string, videoData: object } | null}
- *   videoData is the result of parseVideoUrl() — contains platform, videoId, embedUrl, thumbnailUrl
+ * @returns {{ url: string, mediaData: object } | null}
+ *   mediaData is the result of parseMediaUrl() — contains platform, videoId, embedUrl, thumbnailUrl
  */
-export const extractVideoUrl = (html) => {
+export const extractMediaUrl = (html) => {
   if (!html || typeof html !== 'string') return null;
 
   const candidates = [];
@@ -54,9 +54,9 @@ export const extractVideoUrl = (html) => {
   const addCandidate = (url) => {
     if (!url || seen.has(url)) return;
     seen.add(url);
-    const videoData = parseVideoUrl(url);
-    if (videoData) {
-      candidates.push({ url, videoData });
+    const mediaData = parseMediaUrl(url);
+    if (mediaData) {
+      candidates.push({ url, mediaData });
     }
   };
 

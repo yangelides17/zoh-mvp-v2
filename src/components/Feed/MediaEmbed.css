@@ -6,7 +6,7 @@
  */
 
 /* Main video container - maintains 16:9 aspect ratio */
-.video-embed-container {
+.media-embed-container {
   position: relative;
   width: 100%;
   padding-bottom: 56.25%; /* 16:9 aspect ratio (9/16 = 0.5625 = 56.25%) */
@@ -16,7 +16,7 @@
 }
 
 /* Spotify embed — compact audio player instead of 16:9 video */
-.video-embed-container.spotify {
+.media-embed-container.spotify {
   padding-bottom: 0;
   height: 232px;
   background: #121212;
@@ -24,7 +24,7 @@
 }
 
 /* Spotify SDK-injected iframe fills container */
-.video-embed-container.spotify iframe {
+.media-embed-container.spotify iframe {
   width: 100%;
   height: 100%;
   border: none;
@@ -43,7 +43,7 @@
 }
 
 /* Video iframe - fills container */
-.video-embed-iframe {
+.media-embed-iframe {
   position: absolute;
   top: 0;
   left: 0;
@@ -53,7 +53,7 @@
 }
 
 /* Placeholder shown before video loads */
-.video-placeholder {
+.media-placeholder {
   position: absolute;
   top: 0;
   left: 0;
@@ -66,7 +66,7 @@
 }
 
 /* Animated skeleton loader */
-.video-loading-skeleton {
+.media-loading-skeleton {
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
@@ -106,7 +106,7 @@
 }
 
 /* Error state container */
-.video-error {
+.media-error {
   position: absolute;
   top: 0;
   left: 0;
@@ -123,13 +123,13 @@
   border-radius: 8px;
 }
 
-.video-error p {
+.media-error p {
   margin: 0.5rem 0;
   font-size: 0.9rem;
   line-height: 1.4;
 }
 
-.video-platform-info {
+.media-platform-info {
   font-size: 0.8rem;
   color: #666;
   margin-top: 0.25rem;
@@ -145,15 +145,15 @@
     font-size: 0.65rem;
   }
 
-  .video-error {
+  .media-error {
     padding: 1rem;
   }
 
-  .video-error p {
+  .media-error p {
     font-size: 0.85rem;
   }
 
-  .video-platform-info {
+  .media-platform-info {
     font-size: 0.75rem;
   }
 }
@@ -167,7 +167,7 @@
 
 /* Hover effects for interactive feedback */
 @media (hover: hover) {
-  .video-placeholder:hover .play-icon {
+  .media-placeholder:hover .play-icon {
     opacity: 0.9;
     transform: scale(1.1);
     transition: all 0.2s ease;
