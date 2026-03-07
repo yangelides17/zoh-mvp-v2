@@ -9,14 +9,16 @@
  * rather than individual fragment level.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import DOMPurify from 'dompurify';
 import { fetchArticleHtml } from '../../services/api';
 import FragmentImage from './FragmentImage';
+import DeepDiveTiles from './DeepDiveTiles';
 import { useEngagement } from '../../hooks/useEngagement';
+import useLongPress from '../../hooks/useLongPress';
 import './AssembledArticle.css';
 
-const AssembledArticle = ({ article }) => {
+const AssembledArticle = ({ article, isDesktop = false }) => {
   const { page_id, domain, url, has_html, fragments, fragment_count, page_number } = article;
 
   const [shouldLoad, setShouldLoad] = useState(false);
@@ -29,6 +31,41 @@ const AssembledArticle = ({ article }) => {
   const wrapperRef = useRef(null);
   const fragmentObserverRef = useRef(null);
   const engagement = useEngagement();
+  const [deepDiveActive, setDeepDiveActive] = useState(false);
+
+  // Long-press to trigger deep-dive
+  const handleLongPress = useCallback(() => {
+    if (!isDesktop) return;
+    setDeepDiveActive(true);
+  }, [isDesktop]);
+
+  const {
+    onPointerDown, onPointerMove, onPointerUp, onPointerCancel,
+    pressing, longPressFiredRef,
+  } = useLongPress(handleLongPress, { delay: 500 });
+
+  // Dismiss deep-dive when card scrolls out of view
+  useEffect(() => {
+    if (!deepDiveActive || !containerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) setDeepDiveActive(false);
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [deepDiveActive]);
+
+  // Dismiss deep-dive on Escape
+  useEffect(() => {
+    if (!deepDiveActive) return;
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setDeepDiveActive(false);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [deepDiveActive]);
 
   // Lazy load: only fetch HTML when near viewport
   useEffect(() => {
@@ -316,9 +353,29 @@ const AssembledArticle = ({ article }) => {
   // Navigate to origin URL when metadata is clicked
   const handleMetadataClick = (e) => {
     e.stopPropagation();
+    if (longPressFiredRef.current) {
+      longPressFiredRef.current = false;
+      return;
+    }
+    if (deepDiveActive) return;
     if (url) {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
+  };
+
+  const cardClasses = [
+    'fragment-card',
+    'assembled-article-card',
+    deepDiveActive && 'deep-dive-active',
+    pressing && 'long-press-active',
+  ].filter(Boolean).join(' ');
+
+  const deepDiveFragment = {
+    fragment_id: fragments?.[0]?.fragment_id || null,
+    page_id: page_id,
+    archetype: 'article',
+    domain: domain,
+    url: url,
   };
 
   // Fallback to screenshot of first fragment if no HTML
@@ -327,54 +384,77 @@ const AssembledArticle = ({ article }) => {
     if (!firstFragment) return null;
 
     return (
-      <div className="fragment-card assembled-article-card">
-        <div className="fragment-card-content">
-          <div className="fragment-image-wrapper">
-            <FragmentImage
-              fragmentId={firstFragment.fragment_id}
-              archetype={firstFragment.archetype}
-              domain={domain}
-            />
+      <div
+        className={cardClasses}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+      >
+        <div className="fragment-content-pane">
+          <div className="fragment-card-content">
+            <div className="fragment-image-wrapper">
+              <FragmentImage
+                fragmentId={firstFragment.fragment_id}
+                archetype={firstFragment.archetype}
+                domain={domain}
+              />
+            </div>
+            <div className="fragment-metadata" onClick={handleMetadataClick}>
+              <div className="fragment-archetype-badge">Article{page_number ? ` · Page ${page_number}` : ''}</div>
+              <div className="fragment-domain">{domain}</div>
+            </div>
+            <div className="fragment-hint" onClick={handleMetadataClick}>
+              <span className="hint-icon">↗</span>
+              <span className="hint-text">{deepDiveActive ? '' : 'Hold to deep-dive'}</span>
+            </div>
           </div>
+        </div>
+        {deepDiveActive && (
+          <DeepDiveTiles fragment={deepDiveFragment} onClose={() => setDeepDiveActive(false)} />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className={cardClasses}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+    >
+      <div className="fragment-content-pane">
+        <div className="fragment-card-content">
+          {isLoading ? (
+            <div className="assembled-article-placeholder">
+              <div className="assembled-article-skeleton">
+                <div className="assembled-article-icon">A</div>
+                <div className="assembled-article-label">
+                  {fragment_count} section{fragment_count !== 1 ? 's' : ''}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div ref={wrapperRef} className="assembled-article-wrapper">
+              <div ref={shadowHostRef} className="assembled-article-shadow-host" />
+            </div>
+          )}
           <div className="fragment-metadata" onClick={handleMetadataClick}>
             <div className="fragment-archetype-badge">Article{page_number ? ` · Page ${page_number}` : ''}</div>
             <div className="fragment-domain">{domain}</div>
           </div>
           <div className="fragment-hint" onClick={handleMetadataClick}>
             <span className="hint-icon">↗</span>
-            <span className="hint-text">Click to open source</span>
+            <span className="hint-text">{deepDiveActive ? '' : 'Hold to deep-dive'}</span>
           </div>
         </div>
       </div>
-    );
-  }
-
-  return (
-    <div ref={containerRef} className="fragment-card assembled-article-card">
-      <div className="fragment-card-content">
-        {isLoading ? (
-          <div className="assembled-article-placeholder">
-            <div className="assembled-article-skeleton">
-              <div className="assembled-article-icon">A</div>
-              <div className="assembled-article-label">
-                {fragment_count} section{fragment_count !== 1 ? 's' : ''}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div ref={wrapperRef} className="assembled-article-wrapper">
-            <div ref={shadowHostRef} className="assembled-article-shadow-host" />
-          </div>
-        )}
-        <div className="fragment-metadata" onClick={handleMetadataClick}>
-          <div className="fragment-archetype-badge">Article{page_number ? ` · Page ${page_number}` : ''}</div>
-          <div className="fragment-domain">{domain}</div>
-        </div>
-        <div className="fragment-hint" onClick={handleMetadataClick}>
-          <span className="hint-icon">↗</span>
-          <span className="hint-text">Click to open source</span>
-        </div>
-      </div>
+      {deepDiveActive && (
+        <DeepDiveTiles fragment={deepDiveFragment} onClose={() => setDeepDiveActive(false)} />
+      )}
     </div>
   );
 };

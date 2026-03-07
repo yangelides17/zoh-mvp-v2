@@ -1,0 +1,299 @@
+/* DeepDiveTiles — tile-based chat, right half of deep-dive split */
+
+.deep-dive-tiles {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  animation: tiles-fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+@keyframes tiles-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Close button */
+.dd-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.15s;
+  z-index: 10;
+  line-height: 1;
+}
+
+.dd-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Scrollable tile area */
+.tiles-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+.tiles-scroll-area::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tiles-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tiles-scroll-area::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+/* Individual tile — glass-morphism card */
+.dd-tile {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  line-height: 1.55;
+  animation: tile-appear 0.3s ease-out;
+}
+
+@keyframes tile-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Meta tile — first tile */
+.dd-tile-meta {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dd-tile-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.dd-tile-badge {
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.dd-tile-domain {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.dd-tile-purpose {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 10px 0;
+}
+
+.dd-tile-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dd-keyword {
+  background: rgba(91, 158, 255, 0.08);
+  color: rgba(91, 158, 255, 0.7);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(91, 158, 255, 0.12);
+}
+
+/* User tile — right-aligned, blue tint */
+.dd-tile-user {
+  background: rgba(91, 158, 255, 0.1);
+  border-color: rgba(91, 158, 255, 0.18);
+  align-self: flex-end;
+  max-width: 85%;
+}
+
+.dd-tile-user .dd-tile-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Assistant tile — left-aligned, ZOH badge */
+.dd-tile-assistant {
+  align-self: flex-start;
+  max-width: 90%;
+}
+
+/* ZOH badge */
+.dd-tile-zoh-badge {
+  background: linear-gradient(135deg, #5b9eff, #7b6eff);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.dd-tile-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Loading tile */
+.dd-tile-loading {
+  min-height: 48px;
+}
+
+.dd-loading-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dd-loading-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(91, 158, 255, 0.5);
+  animation: dd-dot-pulse 1.2s infinite;
+}
+
+.dd-loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dd-loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dd-dot-pulse {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+  30% { opacity: 1; transform: scale(1); }
+}
+
+/* Meta loading skeleton */
+.dd-meta-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dd-skeleton-bar {
+  height: 14px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  animation: dd-shimmer 1.5s infinite;
+}
+
+.dd-skeleton-bar:nth-child(1) { width: 40%; }
+.dd-skeleton-bar:nth-child(2) { width: 80%; }
+.dd-skeleton-bar:nth-child(3) { width: 60%; }
+
+@keyframes dd-shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Input area — pinned to bottom */
+.dd-input-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.dd-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.dd-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.dd-input:focus {
+  border-color: rgba(91, 158, 255, 0.4);
+}
+
+.dd-input:disabled {
+  opacity: 0.5;
+}
+
+.dd-send-btn {
+  background: linear-gradient(135deg, #5b9eff, #7b6eff);
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  color: #fff;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dd-send-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 2px 10px rgba(91, 158, 255, 0.3);
+}
+
+.dd-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

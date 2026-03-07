@@ -12,7 +12,7 @@
  */
 
 import React, { createContext, useContext, useRef, useCallback, useEffect } from 'react';
-import { sendEngagementEvents } from '../services/api';
+import { sendEngagementEvents, syncEngagementToSession } from '../services/api';
 
 const EngagementContext = createContext(null);
 
@@ -44,11 +44,13 @@ export function EngagementProvider({ children, feedRef }) {
   const lastScrollTime = useRef(Date.now());
   const flushTimerRef = useRef(null);
 
-  // Flush queued events to backend
+  // Flush queued events to backend + sync to session context
   const flush = useCallback(() => {
     if (eventQueue.current.length === 0) return;
     const batch = eventQueue.current.splice(0);
     sendEngagementEvents(userId.current, batch);
+    // Also sync to in-memory session context (best-effort, fire-and-forget)
+    syncEngagementToSession(batch);
   }, []);
 
   // End a dwell and push visibility event if long enough

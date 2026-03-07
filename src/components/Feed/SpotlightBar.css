@@ -1,0 +1,323 @@
+/* SpotlightBar — Arc/Spotlight-style search input */
+
+.spotlight-bar {
+  position: fixed;
+  top: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Collapsed pill */
+.spotlight-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.spotlight-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  transform: scale(1.02);
+}
+
+.spotlight-icon {
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.spotlight-placeholder {
+  font-weight: 400;
+}
+
+.spotlight-shortcut {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: monospace;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Expanded state */
+.spotlight-bar.expanded {
+  width: min(560px, 90vw);
+}
+
+.spotlight-expanded {
+  background: rgba(18, 18, 24, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  overflow: hidden;
+  animation: spotlight-in 0.2s ease-out;
+}
+
+@keyframes spotlight-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.spotlight-input-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px 8px;
+}
+
+.spotlight-icon-expanded {
+  opacity: 0.4;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.spotlight-textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 15px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: none;
+  min-height: 24px;
+  max-height: 120px;
+}
+
+.spotlight-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.spotlight-textarea:disabled {
+  opacity: 0.5;
+}
+
+/* Actions row */
+.spotlight-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.spotlight-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spotlight-cancel-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.spotlight-cancel-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.spotlight-submit-btn {
+  background: linear-gradient(135deg, #5b9eff, #7b6eff);
+  color: #fff;
+  border: none;
+  padding: 6px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spotlight-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6ba8ff, #8b7eff);
+  box-shadow: 0 2px 12px rgba(91, 158, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.spotlight-submit-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Loading dots */
+.spotlight-loading {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+}
+
+.spotlight-loading span {
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  animation: spotlight-dot 1.2s infinite;
+}
+
+.spotlight-loading span:nth-child(2) { animation-delay: 0.2s; }
+.spotlight-loading span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes spotlight-dot {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+/* Settings button */
+.spotlight-settings-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 5px 8px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.15s;
+  position: relative;
+}
+
+.spotlight-settings-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.settings-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+  background: #34d399;
+  border-radius: 50%;
+}
+
+/* Settings popover */
+.spotlight-settings-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 280px;
+  background: rgba(18, 18, 24, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: spotlight-in 0.15s ease-out;
+}
+
+.spotlight-settings-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.spotlight-settings-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 500;
+  margin: 8px 0 4px;
+}
+
+.spotlight-settings-select,
+.spotlight-settings-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.spotlight-settings-select:focus,
+.spotlight-settings-input:focus {
+  border-color: rgba(91, 158, 255, 0.5);
+}
+
+.spotlight-settings-save {
+  width: 100%;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #5b9eff, #7b6eff);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spotlight-settings-save:hover {
+  box-shadow: 0 2px 12px rgba(91, 158, 255, 0.3);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .spotlight-bar {
+    top: auto;
+    bottom: 20px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+  }
+
+  .spotlight-bar.expanded {
+    width: auto;
+    left: 12px;
+    right: 12px;
+  }
+
+  .spotlight-pill {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .spotlight-shortcut {
+    display: none;
+  }
+
+  .spotlight-textarea {
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+}
