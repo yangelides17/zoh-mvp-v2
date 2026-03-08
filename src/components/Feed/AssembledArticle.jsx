@@ -26,6 +26,8 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
   const [htmlData, setHtmlData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [expanding, setExpanding] = useState(false);
   const containerRef = useRef(null);
   const shadowHostRef = useRef(null);
   const shadowRootRef = useRef(null);
@@ -352,6 +354,24 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
     };
   }, [htmlData, engagement]);
 
+  // Expand truncated article in-place (re-fetch all fragments)
+  const handleExpand = useCallback(async (e) => {
+    e.stopPropagation();
+    if (expanded || expanding) return;
+    setExpanding(true);
+    try {
+      const data = await fetchArticleHtml(page_id, null);
+      if (data) {
+        setHtmlData(data);
+        setExpanded(true);
+      }
+    } catch (err) {
+      console.error('Failed to expand article:', err);
+    } finally {
+      setExpanding(false);
+    }
+  }, [page_id, expanded, expanding]);
+
   // Navigate to origin URL when metadata is clicked
   const handleMetadataClick = (e) => {
     e.stopPropagation();
@@ -448,9 +468,12 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
               <div className="feed-scroll-zone feed-scroll-zone-bottom" />
             </div>
           )}
-          {truncated && (
-            <div className="article-truncation-hint" onClick={handleMetadataClick}>
-              Showing {fragment_count} of {total_fragment_count} sections · View full article ↗
+          {truncated && !expanded && (
+            <div className="article-truncation-hint" onClick={handleExpand}>
+              {expanding
+                ? 'Loading full article...'
+                : `Showing ${fragment_count} of ${total_fragment_count} sections · View full article`
+              }
             </div>
           )}
           <div className="fragment-metadata" onClick={handleMetadataClick}>
