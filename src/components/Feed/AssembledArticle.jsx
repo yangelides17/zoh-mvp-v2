@@ -438,8 +438,12 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
               </div>
             </div>
           ) : (
-            <div ref={wrapperRef} className="assembled-article-wrapper">
-              <div ref={shadowHostRef} className="assembled-article-shadow-host" />
+            <div className="assembled-article-container">
+              <div ref={wrapperRef} className="assembled-article-wrapper">
+                <div ref={shadowHostRef} className="assembled-article-shadow-host" />
+              </div>
+              <div className="feed-scroll-zone feed-scroll-zone-top" />
+              <div className="feed-scroll-zone feed-scroll-zone-bottom" />
             </div>
           )}
           <div className="fragment-metadata" onClick={handleMetadataClick}>

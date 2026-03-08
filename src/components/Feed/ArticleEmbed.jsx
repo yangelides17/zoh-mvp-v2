@@ -298,9 +298,13 @@ const ArticleEmbed = ({ fragmentId, archetype, domain, url, hasHtml, bbox }) => 
           </div>
         </div>
       ) : (
-        <div className="article-embed-wrapper">
-          <div ref={shadowHostRef} className="article-shadow-host" />
-        </div>
+        <>
+          <div className="article-embed-wrapper">
+            <div ref={shadowHostRef} className="article-shadow-host" />
+          </div>
+          <div className="feed-scroll-zone feed-scroll-zone-top" />
+          <div className="feed-scroll-zone feed-scroll-zone-bottom" />
+        </>
       )}
     </div>
   );
