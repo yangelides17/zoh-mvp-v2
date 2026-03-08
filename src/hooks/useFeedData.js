@@ -143,6 +143,7 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.domains, filters.archetypes, filters.pages, filters.curated, filters.source, filters.search, loadTrigger]);
 
   /**

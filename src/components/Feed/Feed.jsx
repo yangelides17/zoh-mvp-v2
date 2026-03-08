@@ -53,15 +53,8 @@ const Feed = () => {
     fetchChatConfig().then(config => setChatMode(config.mode || 'direct'));
   }, []);
 
-  // Get the item ID for an item
-  const getItemId = useCallback((item) => {
-    if (!item) return null;
-    if (item.type === 'article') return `article-${item.article_id}`;
-    return item.fragment_id;
-  }, []);
-
   // Surfaced fragments fetched by useFeedLens (full fragment data)
-  const surfacedFragments = lens?.surfacedFragments || [];
+  const surfacedFragments = useMemo(() => lens?.surfacedFragments || [], [lens?.surfacedFragments]);
   const surfacedIds = useMemo(() => {
     return new Set(surfacedFragments.map(f => f.fragment_id));
   }, [surfacedFragments]);
