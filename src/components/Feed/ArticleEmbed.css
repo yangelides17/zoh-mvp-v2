@@ -25,6 +25,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  overscroll-behavior: contain;
 
   /* Custom scrollbar */
   scrollbar-width: thin;
@@ -99,6 +100,19 @@
   color: rgba(255, 255, 255, 0.5);
   font-weight: 600;
 }
+
+/* Touch scroll zones — siblings of the scrollable wrapper, inside the
+   non-scrollable container. Touches here route to the feed's snap scroll
+   because the scrollable wrapper is NOT an ancestor of these elements. */
+.article-embed-container .feed-scroll-zone {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 12.5%;
+  z-index: 5;
+}
+.article-embed-container .feed-scroll-zone-top { top: 0; }
+.article-embed-container .feed-scroll-zone-bottom { bottom: 0; }
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
