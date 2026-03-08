@@ -19,7 +19,7 @@ import useLongPress from '../../hooks/useLongPress';
 import './AssembledArticle.css';
 
 const AssembledArticle = ({ article, isDesktop = false }) => {
-  const { page_id, domain, url, has_html, fragments, fragment_count, page_number } = article;
+  const { page_id, domain, url, has_html, fragments, fragment_count, total_fragment_count, truncated, page_number } = article;
 
   const [shouldLoad, setShouldLoad] = useState(false);
   const [htmlData, setHtmlData] = useState(null);
@@ -96,7 +96,8 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
 
     const loadHtml = async () => {
       try {
-        const data = await fetchArticleHtml(page_id);
+        const fragmentIds = fragments?.map(f => f.fragment_id).filter(Boolean) || null;
+        const data = await fetchArticleHtml(page_id, fragmentIds);
         if (!cancelled) {
           setHtmlData(data);
           setIsLoading(false);
@@ -444,6 +445,11 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
               </div>
               <div className="feed-scroll-zone feed-scroll-zone-top" />
               <div className="feed-scroll-zone feed-scroll-zone-bottom" />
+            </div>
+          )}
+          {truncated && (
+            <div className="article-truncation-hint" onClick={handleMetadataClick}>
+              Showing {fragment_count} of {total_fragment_count} sections · View full article ↗
             </div>
           )}
           <div className="fragment-metadata" onClick={handleMetadataClick}>

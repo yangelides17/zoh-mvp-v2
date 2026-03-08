@@ -167,11 +167,16 @@ export const fetchArticles = async (limit = 20, cursor = null, domains = [], arc
 /**
  * Fetch combined HTML for an assembled article (all article fragments from a page)
  * @param {string} pageId - Page UUID
+ * @param {string[]|null} fragmentIds - Optional fragment UUIDs to limit extraction
  * @returns {Promise<{html: string, styles: string[], stylesheet_urls: string[], base_url: string, fragment_ids: string[]}>}
  */
-export const fetchArticleHtml = async (pageId) => {
+export const fetchArticleHtml = async (pageId, fragmentIds = null) => {
   try {
-    const response = await api.get(`/api/feed/article/${pageId}/html`);
+    const params = {};
+    if (fragmentIds && fragmentIds.length > 0) {
+      params.fragment_ids = fragmentIds.join(',');
+    }
+    const response = await api.get(`/api/feed/article/${pageId}/html`, { params });
     return response.data;
   } catch (error) {
     if (error.response?.status !== 404) {
