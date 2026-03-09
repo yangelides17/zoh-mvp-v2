@@ -353,6 +353,7 @@
   width: 100vw;
   height: calc(100vh - 48px);
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   display: flex;
   align-items: center;
   justify-content: center;
