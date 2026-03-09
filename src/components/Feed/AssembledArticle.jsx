@@ -113,7 +113,7 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
 
     loadHtml();
     return () => { cancelled = true; };
-  }, [shouldLoad, page_id, has_html]);
+  }, [shouldLoad, page_id, has_html, fragments]);
 
   // Inject HTML into Shadow DOM when data arrives
   useEffect(() => {
