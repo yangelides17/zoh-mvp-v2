@@ -875,6 +875,15 @@
   aspect-ratio: 16 / 9;
 }
 
+/* Spotify embeds: use compact height, not 16:9 aspect ratio */
+.fragment-card.audio_player .media-embed-container.spotify,
+.fragment-card.audio_card .media-embed-container.spotify {
+  aspect-ratio: unset;
+  height: 232px;
+  width: 80%;
+  max-width: 600px;
+}
+
 /* Article-specific styles - interactive content, not clickable cards */
 .fragment-card.article .fragment-card-content,
 .fragment-card.article_media .fragment-card-content,
