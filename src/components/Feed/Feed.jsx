@@ -18,6 +18,7 @@ import PromptCard from './PromptCard';
 import SpotlightBar from './SpotlightBar';
 import LensOverlay from './LensOverlay';
 import FilterBar from './FilterBar';
+import { FEATURES } from '../../utils/features';
 import '../../styles/Feed.css';
 
 const Feed = () => {
@@ -306,33 +307,41 @@ const Feed = () => {
 
           {/* Filter Bar + Generate */}
           <div className="feed-header-controls">
-            <FilterBar
-              onApplyFilters={applyFilters}
-              currentFilters={filters}
-            />
-            <button
-              className="generate-insights-btn"
-              onClick={handleGenerateInsights}
-              disabled={generatingCards}
-            >
-              {generatingCards ? 'Generating...' : 'Generate Insights'}
-            </button>
+            {FEATURES.FILTER_BAR && (
+              <FilterBar
+                onApplyFilters={applyFilters}
+                currentFilters={filters}
+              />
+            )}
+            {FEATURES.GENERATE_INSIGHTS && (
+              <button
+                className="generate-insights-btn"
+                onClick={handleGenerateInsights}
+                disabled={generatingCards}
+              >
+                {generatingCards ? 'Generating...' : 'Generate Insights'}
+              </button>
+            )}
           </div>
         </div>
 
         {/* Spotlight Bar */}
-        <SpotlightBar
-          onSubmit={handleSpotlightSubmit}
-          isLoading={lens?.loading || false}
-          activeFragment={activeFragment}
-          chatMode={chatMode}
-        />
+        {FEATURES.SPOTLIGHT && (
+          <SpotlightBar
+            onSubmit={handleSpotlightSubmit}
+            isLoading={lens?.loading || false}
+            activeFragment={activeFragment}
+            chatMode={chatMode}
+          />
+        )}
 
         {/* Lens Overlay */}
-        <LensOverlay
-          lens={lens}
-          onClear={clearLens}
-        />
+        {FEATURES.SPOTLIGHT && (
+          <LensOverlay
+            lens={lens}
+            onClear={clearLens}
+          />
+        )}
 
         {/* Feed Items */}
         <div className="feed-content">

@@ -353,6 +353,7 @@
   width: 100vw;
   height: calc(100vh - 48px);
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -872,6 +873,15 @@
   height: auto;
   padding-bottom: 0;
   aspect-ratio: 16 / 9;
+}
+
+/* Spotify embeds: use compact height, not 16:9 aspect ratio */
+.fragment-card.audio_player .media-embed-container.spotify,
+.fragment-card.audio_card .media-embed-container.spotify {
+  aspect-ratio: unset;
+  height: 232px;
+  width: 80%;
+  max-width: 600px;
 }
 
 /* Article-specific styles - interactive content, not clickable cards */
