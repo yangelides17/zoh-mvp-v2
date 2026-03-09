@@ -16,6 +16,7 @@ import FragmentImage from './FragmentImage';
 import DeepDiveTiles from './DeepDiveTiles';
 import { useEngagement } from '../../hooks/useEngagement';
 import useLongPress from '../../hooks/useLongPress';
+import { FEATURES } from '../../utils/features';
 import './AssembledArticle.css';
 
 const AssembledArticle = ({ article, isDesktop = false }) => {
@@ -35,7 +36,7 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
 
   // Long-press to trigger deep-dive
   const handleLongPress = useCallback(() => {
-    if (!isDesktop) return;
+    if (!FEATURES.DEEP_DIVE || !isDesktop) return;
     setDeepDiveActive(true);
   }, [isDesktop]);
 
@@ -407,11 +408,11 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
             </div>
             <div className="fragment-hint" onClick={handleMetadataClick}>
               <span className="hint-icon">↗</span>
-              <span className="hint-text">{deepDiveActive ? '' : 'Hold to deep-dive'}</span>
+              <span className="hint-text">{deepDiveActive ? '' : FEATURES.DEEP_DIVE ? 'Hold to deep-dive' : 'Click to open source'}</span>
             </div>
           </div>
         </div>
-        {deepDiveActive && (
+        {FEATURES.DEEP_DIVE && deepDiveActive && (
           <DeepDiveTiles fragment={deepDiveFragment} onClose={() => setDeepDiveActive(false)} />
         )}
       </div>
@@ -458,11 +459,11 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
           </div>
           <div className="fragment-hint" onClick={handleMetadataClick}>
             <span className="hint-icon">↗</span>
-            <span className="hint-text">{deepDiveActive ? '' : 'Hold to deep-dive'}</span>
+            <span className="hint-text">{deepDiveActive ? '' : FEATURES.DEEP_DIVE ? 'Hold to deep-dive' : 'Click to open source'}</span>
           </div>
         </div>
       </div>
-      {deepDiveActive && (
+      {FEATURES.DEEP_DIVE && deepDiveActive && (
         <DeepDiveTiles fragment={deepDiveFragment} onClose={() => setDeepDiveActive(false)} />
       )}
     </div>

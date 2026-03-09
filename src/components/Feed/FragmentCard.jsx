@@ -16,6 +16,7 @@ import { parseMediaUrl } from '../../utils/mediaParser';
 import { useEngagement } from '../../hooks/useEngagement';
 import useLongPress from '../../hooks/useLongPress';
 import { sendReaction } from '../../services/api';
+import { FEATURES } from '../../utils/features';
 
 const ANNOTATION_COLORS = {
   note: '#5b9eff',
@@ -33,7 +34,7 @@ const FragmentCard = ({ fragment, index, lensSurfaced = false, annotations = [],
 
   // Long-press to trigger deep-dive
   const handleLongPress = useCallback(() => {
-    if (!isDesktop) return;
+    if (!FEATURES.DEEP_DIVE || !isDesktop) return;
     setDeepDiveActive(true);
   }, [isDesktop]);
 
@@ -240,7 +241,7 @@ const FragmentCard = ({ fragment, index, lensSurfaced = false, annotations = [],
           {/* Click hint */}
           <div className="fragment-hint">
             <span className="hint-icon">↗</span>
-            <span className="hint-text">{deepDiveActive ? '' : 'Hold to deep-dive'}</span>
+            <span className="hint-text">{deepDiveActive ? '' : FEATURES.DEEP_DIVE ? 'Hold to deep-dive' : 'Click to open source'}</span>
           </div>
 
           {/* Annotations overlay */}
@@ -264,7 +265,7 @@ const FragmentCard = ({ fragment, index, lensSurfaced = false, annotations = [],
       </div>
 
       {/* Right: tile-based chat (only when deep-dive active) */}
-      {deepDiveActive && (
+      {FEATURES.DEEP_DIVE && deepDiveActive && (
         <DeepDiveTiles
           fragment={{
             fragment_id: fragment.fragment_id,
