@@ -8,4 +8,5 @@ export const FEATURES = {
   DEEP_DIVE: process.env.REACT_APP_FEATURE_DEEP_DIVE === 'true',
   GENERATE_INSIGHTS: process.env.REACT_APP_FEATURE_GENERATE_INSIGHTS === 'true',
   FILTER_BAR: process.env.REACT_APP_FEATURE_FILTER_BAR === 'true',
+  DEBUG_PAGE_NUMBERS: process.env.REACT_APP_FEATURE_DEBUG_PAGE_NUMBERS === 'true',
 };
