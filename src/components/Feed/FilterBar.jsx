@@ -18,7 +18,6 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   const [tempDomains, setTempDomains] = useState(currentFilters.domains || []);
   const [tempArchetypes, setTempArchetypes] = useState(currentFilters.archetypes || []);
   const [tempPages, setTempPages] = useState(currentFilters.pages || []);
-  const [tempCurated, setTempCurated] = useState(currentFilters.curated || false);
   const [tempSource, setTempSource] = useState(currentFilters.source || 'all');
   const [tempSearch, setTempSearch] = useState(currentFilters.search || '');
 
@@ -75,7 +74,6 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     setTempDomains(currentFilters.domains || []);
     setTempArchetypes(currentFilters.archetypes || []);
     setTempPages(currentFilters.pages || []);
-    setTempCurated(currentFilters.curated || false);
     setTempSource(currentFilters.source || 'all');
     setTempSearch(currentFilters.search || '');
   }, [currentFilters]);
@@ -102,10 +100,9 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
                              JSON.stringify((currentFilters.archetypes || []).sort());
     const pagesChanged = JSON.stringify(tempPages.sort()) !==
                         JSON.stringify((currentFilters.pages || []).sort());
-    const curatedChanged = tempCurated !== (currentFilters.curated || false);
     const sourceChanged = tempSource !== (currentFilters.source || 'all');
     const searchChanged = tempSearch !== (currentFilters.search || '');
-    return domainsChanged || archetypesChanged || pagesChanged || curatedChanged || sourceChanged || searchChanged;
+    return domainsChanged || archetypesChanged || pagesChanged || sourceChanged || searchChanged;
   };
 
   // Apply filters
@@ -114,7 +111,6 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
       domains: tempDomains,
       archetypes: tempArchetypes,
       pages: tempPages,
-      curated: tempCurated,
       source: tempSource,
       search: tempSearch
     });
@@ -125,14 +121,12 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
     setTempDomains([]);
     setTempArchetypes([]);
     setTempPages([]);
-    setTempCurated(false);
     setTempSource('all');
     setTempSearch('');
     onApplyFilters({
       domains: [],
       archetypes: [],
       pages: [],
-      curated: false,
       source: 'all',
       search: ''
     });
@@ -143,7 +137,7 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0 || tempPages.length > 0 || tempCurated || tempSource !== 'all' || tempSearch.trim() !== '';
+  const hasActiveFilters = tempDomains.length > 0 || tempArchetypes.length > 0 || tempPages.length > 0 || tempSource !== 'all' || tempSearch.trim() !== '';
 
   if (loading) {
     return (
@@ -210,14 +204,6 @@ const FilterBar = ({ onApplyFilters, currentFilters }) => {
           ))}
         </div>
 
-        <label className="curated-toggle">
-          <input
-            type="checkbox"
-            checked={tempCurated}
-            onChange={(e) => setTempCurated(e.target.checked)}
-          />
-          <span>Curated Only</span>
-        </label>
       </div>
 
       <div className="filter-actions">
