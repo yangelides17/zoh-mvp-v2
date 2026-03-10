@@ -52,7 +52,6 @@ export const useFeedData = () => {
     domains: [],
     archetypes: [],
     pages: [],
-    curated: false,
     source: 'all',
     search: ''
   });
@@ -77,7 +76,7 @@ export const useFeedData = () => {
         fetchArticles(
           20, null,
           filters.domains, filters.archetypes, null,
-          filters.curated, filters.source, filters.pages, filters.search,
+          false, filters.source, filters.pages, filters.search,
           anonymousId, ''
         ),
         fetchAgentCards(10),
@@ -144,7 +143,7 @@ export const useFeedData = () => {
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.domains, filters.archetypes, filters.pages, filters.curated, filters.source, filters.search, loadTrigger]);
+  }, [filters.domains, filters.archetypes, filters.pages, filters.source, filters.search, loadTrigger]);
 
   /**
    * Load more feed items (for infinite scroll)
@@ -163,7 +162,7 @@ export const useFeedData = () => {
       const data = await fetchArticles(
         20, null,
         filters.domains, filters.archetypes, null,
-        filters.curated, filters.source, filters.pages, filters.search,
+        false, filters.source, filters.pages, filters.search,
         anonymousId, excludeIds
       );
 
@@ -202,7 +201,7 @@ export const useFeedData = () => {
     } finally {
       setLoading(false);
     }
-  }, [hasMore, loading, filters.domains, filters.archetypes, filters.pages, filters.curated, filters.source, filters.search]);
+  }, [hasMore, loading, filters.domains, filters.archetypes, filters.pages, filters.source, filters.search]);
 
   /**
    * Apply new filters and reload feed
