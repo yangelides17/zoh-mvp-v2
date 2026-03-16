@@ -35,7 +35,7 @@ function getOrCreateAnonId() {
   return id;
 }
 
-export function EngagementProvider({ children, feedRef }) {
+export function EngagementProvider({ children, feedRef, feedItems, onTriggerFired, onAgentTrigger }) {
   const userId = useRef(getOrCreateAnonId());
   const eventQueue = useRef([]);
   const activeDwells = useRef(new Map()); // fragmentId -> { startTime, lastViewportPct }
@@ -43,6 +43,34 @@ export function EngagementProvider({ children, feedRef }) {
   const lastScrollTop = useRef(0);
   const lastScrollTime = useRef(Date.now());
   const flushTimerRef = useRef(null);
+
+  // Agent trigger state
+  const feedItemsRef = useRef([]);
+  const triggerCooldownRef = useRef(false);
+  const affinityMedianRef = useRef(0.5);
+  const onTriggerFiredRef = useRef(onTriggerFired);
+  const devTriggerCountRef = useRef(0);
+
+  const onAgentTriggerRef = useRef(onAgentTrigger);
+
+  // Keep refs in sync with props
+  useEffect(() => {
+    feedItemsRef.current = feedItems || [];
+    onTriggerFiredRef.current = onTriggerFired;
+    onAgentTriggerRef.current = onAgentTrigger;
+
+    // Compute affinity median from current feed items
+    const scores = (feedItems || [])
+      .map(item => item._affinity?.score)
+      .filter(s => typeof s === 'number');
+    if (scores.length > 0) {
+      scores.sort((a, b) => a - b);
+      const mid = Math.floor(scores.length / 2);
+      affinityMedianRef.current = scores.length % 2 === 0
+        ? (scores[mid - 1] + scores[mid]) / 2
+        : scores[mid];
+    }
+  }, [feedItems, onTriggerFired, onAgentTrigger]);
 
   // Flush queued events to backend + sync to session context
   const flush = useCallback(() => {
@@ -72,6 +100,67 @@ export function EngagementProvider({ children, feedRef }) {
         scroll_speed: scrollSpeedRef.current,
       },
     });
+
+    // --- Agent trigger detection ---
+    if (triggerCooldownRef.current) return;
+
+    // Find this item in the feed to get affinity scores.
+    // Articles have fragment IDs nested inside item.fragments[], not at top level.
+    const item = feedItemsRef.current.find(i =>
+      i.fragment_id === fragmentId ||
+      i.page_id === fragmentId ||
+      i.article_id === fragmentId ||
+      (i.fragments || []).some(f => f.fragment_id === fragmentId)
+    );
+    const affinity = item?._affinity;
+    if (!affinity || typeof affinity.score !== 'number') return;
+
+    const median = affinityMedianRef.current;
+    const highAffinity = affinity.score >= median;
+    const highResponse = dwellMs >= 5000 && dwell.lastViewportPct >= 0.5;
+    const lowResponse = dwellMs < 2000;
+
+    let triggerType = null;
+
+    // Dev mode: fire on every other dwell event (any dwell > 1s)
+    if (process.env.NODE_ENV === 'development' && dwellMs >= 1000) {
+      devTriggerCountRef.current += 1;
+      if (devTriggerCountRef.current % 2 === 0) {
+        triggerType = highAffinity ? 'high_high' : 'low_high';
+      }
+    } else {
+      if (highAffinity && highResponse) triggerType = 'high_high';
+      else if (highAffinity && lowResponse) triggerType = 'high_low';
+      else if (!highAffinity && highResponse) triggerType = 'low_high';
+    }
+
+    if (triggerType) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[TRIGGER] ${triggerType} on ${fragmentId}`, {
+          score: affinity.score,
+          median,
+          dwellMs,
+          viewportPct: dwell.lastViewportPct,
+          devCount: devTriggerCountRef.current,
+        });
+      }
+
+      triggerCooldownRef.current = true;
+      setTimeout(() => { triggerCooldownRef.current = false; }, 15000); // 15s cooldown in dev
+
+      const engagementData = {
+        dwellMs,
+        viewportPct: dwell.lastViewportPct,
+      };
+
+      // Route through streaming callback if available, otherwise fall back to onTriggerFired
+      if (onAgentTriggerRef.current) {
+        onAgentTriggerRef.current(triggerType, fragmentId, affinity, engagementData);
+      } else if (onTriggerFiredRef.current) {
+        // Fallback: notify parent to refresh cards after delay
+        setTimeout(() => onTriggerFiredRef.current(), 10000);
+      }
+    }
   }, []);
 
   // Start flush interval

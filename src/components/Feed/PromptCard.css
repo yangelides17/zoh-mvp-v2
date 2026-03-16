@@ -189,6 +189,14 @@
   40% { opacity: 1; transform: scale(1); }
 }
 
+/* Error message */
+.prompt-error {
+  color: #ff6b6b;
+  font-size: 13px;
+  text-align: center;
+  padding: 4px 0;
+}
+
 /* Source domains */
 .prompt-domains {
   position: absolute;

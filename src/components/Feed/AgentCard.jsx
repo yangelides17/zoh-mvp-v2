@@ -36,6 +36,7 @@ const AgentCard = ({
   title,
   sourceDomains,
   onDismiss,
+  isReveal,
 }) => {
   const isPushCard = !!cardType;
   const accentColor = isPushCard
@@ -60,7 +61,7 @@ const AgentCard = ({
   };
 
   return (
-    <div className={`fragment-card agent-card${isPushCard ? ' agent-push-card' : ''}`}>
+    <div className={`fragment-card agent-card${isPushCard ? ' agent-push-card' : ''}${isReveal ? ' agent-result-reveal' : ''}`}>
       {/* Left accent border */}
       <div className="agent-accent" style={{ background: accentColor }} />
 

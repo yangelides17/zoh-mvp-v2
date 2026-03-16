@@ -14,13 +14,19 @@ import DOMPurify from 'dompurify';
 import { fetchArticleHtml } from '../../services/api';
 import FragmentImage from './FragmentImage';
 import DeepDiveTiles from './DeepDiveTiles';
+
 import { useEngagement } from '../../hooks/useEngagement';
 import useLongPress from '../../hooks/useLongPress';
 import { FEATURES } from '../../utils/features';
 import './AssembledArticle.css';
 
-const AssembledArticle = ({ article, isDesktop = false }) => {
+const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
   const { page_id, domain, url, has_html, fragments, fragment_count, total_fragment_count, truncated, page_number } = article;
+
+  // Collect annotations for any of this article's fragments
+  const articleAnnotations = (fragments || []).flatMap(f =>
+    (annotations[f.fragment_id] || [])
+  );
 
   const [shouldLoad, setShouldLoad] = useState(false);
   const [htmlData, setHtmlData] = useState(null);
@@ -476,6 +482,16 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
               }
             </div>
           )}
+          {articleAnnotations.length > 0 && (
+            <div className="fragment-annotations">
+              {articleAnnotations.map((ann, i) => (
+                <div key={i} className={`annotation annotation-${ann.type || 'note'}`}>
+                  <span className="annotation-icon">✦</span>
+                  <span className="annotation-text">{ann.text}</span>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="fragment-metadata" onClick={handleMetadataClick}>
             <div className="fragment-archetype-badge">Article{FEATURES.DEBUG_PAGE_NUMBERS && page_number ? ` · Page ${page_number}` : ''}</div>
             <div className="fragment-domain">{domain}</div>
@@ -484,6 +500,7 @@ const AssembledArticle = ({ article, isDesktop = false }) => {
             <span className="hint-icon">↗</span>
             <span className="hint-text">{deepDiveActive ? '' : FEATURES.DEEP_DIVE ? 'Hold to deep-dive' : 'Click to open source'}</span>
           </div>
+
         </div>
       </div>
       {FEATURES.DEEP_DIVE && deepDiveActive && (

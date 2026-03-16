@@ -331,7 +331,10 @@ export const sendChatMessage = async (messages, fragmentId = null, pageId = null
  */
 export const fetchAgentCards = async (limit = 10) => {
   try {
-    const response = await api.get('/api/feed/agent-cards', { params: { limit } });
+    const anonymousId = getAnonymousId();
+    const response = await api.get('/api/feed/agent-cards', {
+      params: { limit, anonymous_id: anonymousId }
+    });
     return response.data;
   } catch (error) {
     console.warn('Failed to fetch agent cards:', error.message);
@@ -417,6 +420,7 @@ export const sendPromptAction = async (cardId, action, payload = null, userInput
     action,
     payload,
     user_input: userInput,
+    anonymous_id: getAnonymousId(),
   };
 
   if (config.mode !== 'openclaw') {
@@ -442,8 +446,9 @@ export const fetchAnnotations = async (fragmentIds) => {
     return { annotations: {} };
   }
   try {
+    const anonymousId = getAnonymousId();
     const response = await api.get('/api/feed/annotations', {
-      params: { fragment_ids: fragmentIds.join(',') },
+      params: { fragment_ids: fragmentIds.join(','), anonymous_id: anonymousId },
     });
     return response.data;
   } catch (error) {
@@ -619,6 +624,112 @@ export const fetchSessionContext = async () => {
     console.warn('Session context fetch failed:', error.message);
     return {};
   }
+};
+
+/**
+ * Fire an engagement-triggered agent run.
+ * Fire-and-forget — agent results appear via card refresh.
+ * @param {string} triggerType - 'high_high'|'high_low'|'low_high'
+ * @param {string} fragmentId - Fragment that triggered the event
+ * @param {Object} affinity - Predicted affinity scores {score, embedding_sim, domain, archetype, reaction_boost}
+ * @param {Object} engagement - Actual engagement data {dwellMs, viewportPct}
+ */
+export const fireAgentTrigger = (triggerType, fragmentId, affinity, engagement) => {
+  const body = {
+    anonymous_id: getAnonymousId(),
+    trigger_type: triggerType,
+    fragment_id: fragmentId,
+    predicted_affinity: affinity,
+    actual_engagement: engagement,
+  };
+  // Fire and forget — agent results appear via card refresh
+  api.post('/api/chat/agent-trigger', body).catch(() => {});
+};
+
+/**
+ * Stream an engagement-triggered agent run via SSE.
+ * Uses fetch + ReadableStream to parse SSE events from a POST endpoint.
+ *
+ * @param {string} triggerType
+ * @param {string} fragmentId
+ * @param {Object} affinity
+ * @param {Object} engagement
+ * @param {Function} onEvent - callback(eventType, data)
+ * @returns {{ cancel: Function }}
+ */
+export const streamAgentTrigger = (triggerType, fragmentId, affinity, engagement, onEvent) => {
+  const controller = new AbortController();
+
+  const body = {
+    anonymous_id: getAnonymousId(),
+    trigger_type: triggerType,
+    fragment_id: fragmentId,
+    predicted_affinity: affinity,
+    actual_engagement: engagement,
+  };
+
+  const run = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat/agent-trigger-stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        onEvent('error', { message: `HTTP ${response.status}` });
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE events from buffer (split on double newline)
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop(); // Keep incomplete event in buffer
+
+        for (const eventStr of parts) {
+          if (!eventStr.trim()) continue;
+          const lines = eventStr.split('\n');
+          let eventType = 'message';
+          let data = '';
+
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              eventType = line.slice(7);
+            } else if (line.startsWith('data: ')) {
+              data = line.slice(6);
+            }
+          }
+
+          if (data) {
+            try {
+              onEvent(eventType, JSON.parse(data));
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
+        }
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.warn('Agent stream error:', err);
+        onEvent('error', { message: err.message });
+      }
+    }
+  };
+
+  run();
+
+  return { cancel: () => controller.abort() };
 };
 
 /**

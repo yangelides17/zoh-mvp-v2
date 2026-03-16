@@ -9,9 +9,10 @@ import React, { useState } from 'react';
 import { sendPromptAction } from '../../services/api';
 import './PromptCard.css';
 
-const PromptCard = ({ card, onDismiss, onActionComplete }) => {
+const PromptCard = ({ card, onDismiss, onActionComplete, isReveal }) => {
   const [inputValue, setInputValue] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleAction = async (action) => {
     if (actionLoading) return;
@@ -22,6 +23,7 @@ const PromptCard = ({ card, onDismiss, onActionComplete }) => {
     }
 
     setActionLoading(true);
+    setError(null);
     try {
       const result = await sendPromptAction(
         card.cardId,
@@ -29,9 +31,10 @@ const PromptCard = ({ card, onDismiss, onActionComplete }) => {
         action.payload || null,
         card.allows_input ? inputValue.trim() || null : null,
       );
-      onActionComplete?.(result);
+      onActionComplete?.(result, card.cardId);
     } catch (err) {
       console.error('Prompt action failed:', err);
+      setError('Something went wrong. Try again.');
     } finally {
       setActionLoading(false);
     }
@@ -40,6 +43,7 @@ const PromptCard = ({ card, onDismiss, onActionComplete }) => {
   const handleInputSubmit = async () => {
     if (!inputValue.trim() || actionLoading) return;
     setActionLoading(true);
+    setError(null);
     try {
       const result = await sendPromptAction(
         card.cardId,
@@ -47,9 +51,10 @@ const PromptCard = ({ card, onDismiss, onActionComplete }) => {
         null,
         inputValue.trim(),
       );
-      onActionComplete?.(result);
+      onActionComplete?.(result, card.cardId);
     } catch (err) {
       console.error('Prompt input failed:', err);
+      setError('Something went wrong. Try again.');
     } finally {
       setActionLoading(false);
     }
@@ -65,7 +70,7 @@ const PromptCard = ({ card, onDismiss, onActionComplete }) => {
   const actions = card.actions || [];
 
   return (
-    <div className="fragment-card prompt-card">
+    <div className={`fragment-card prompt-card${isReveal ? ' agent-result-reveal' : ''}`}>
       <div className="prompt-card-content">
         {/* Dismiss */}
         <button className="prompt-dismiss-btn" onClick={onDismiss} title="Dismiss">
@@ -96,6 +101,9 @@ const PromptCard = ({ card, onDismiss, onActionComplete }) => {
             ))}
           </div>
         )}
+
+        {/* Error feedback */}
+        {error && <div className="prompt-error">{error}</div>}
 
         {/* Optional text input */}
         {card.allows_input && (
