@@ -96,7 +96,7 @@ export const getFragmentScreenshotUrl = (fragmentId) => {
  */
 export const fetchFragmentHtml = async (fragmentId) => {
   try {
-    const response = await api.get(`/api/feed/fragment/${fragmentId}/html`);
+    const response = await api.get(`/api/feed/fragment/${fragmentId}/html`, { params: { _v: 4 } });
     return response.data;
   } catch (error) {
     // Don't log 404s as errors -- HTML not available is expected for many fragments
@@ -172,7 +172,7 @@ export const fetchArticles = async (limit = 20, cursor = null, domains = [], arc
  */
 export const fetchArticleHtml = async (pageId, fragmentIds = null) => {
   try {
-    const params = {};
+    const params = { _v: 4 };  // Cache-buster: bump when server-side extraction changes
     if (fragmentIds && fragmentIds.length > 0) {
       params.fragment_ids = fragmentIds.join(',');
     }

@@ -235,8 +235,12 @@ const FragmentCard = ({ fragment, index, lensSurfaced = false, annotations = [],
               </div>
             )}
             <div className="fragment-domain">
-              {fragment.domain}
+              {fragment.site_name || fragment.domain}
+              {fragment.author && <span className="fragment-author"> · {fragment.author}</span>}
             </div>
+            {fragment.content_summary && (
+              <div className="fragment-summary">{fragment.content_summary}</div>
+            )}
           </div>
 
           {/* Click hint */}

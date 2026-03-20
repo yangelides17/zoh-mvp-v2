@@ -71,13 +71,19 @@ export const useFeedData = () => {
   // Fragment annotations (map: fragment_id -> annotation[])
   const [annotations, setAnnotations] = useState({});
 
-  // Active filters
-  const [filters, setFilters] = useState({
-    domains: [],
-    archetypes: [],
-    pages: [],
-    source: 'all',
-    search: ''
+  // Active filters — seed from URL params if present
+  const [filters, setFilters] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pageId = params.get('page_id');
+    const fragmentId = params.get('fragment_id');
+    return {
+      domains: [],
+      archetypes: [],
+      pages: pageId ? [pageId] : [],
+      fragmentIds: fragmentId ? [fragmentId] : [],
+      source: 'all',
+      search: ''
+    };
   });
 
   // Trigger for reloading (incremented on refresh/filter change)

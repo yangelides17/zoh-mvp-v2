@@ -21,7 +21,7 @@ import { FEATURES } from '../../utils/features';
 import './AssembledArticle.css';
 
 const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
-  const { page_id, domain, url, has_html, fragments, fragment_count, total_fragment_count, truncated, page_number } = article;
+  const { page_id, domain, url, has_html, fragments, fragment_count, total_fragment_count, truncated, page_number, author, published_date, site_name, og_title } = article;
 
   // Collect annotations for any of this article's fragments
   const articleAnnotations = (fragments || []).flatMap(f =>
@@ -139,81 +139,23 @@ const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
     const shadow = shadowRootRef.current;
     if (!shadow) return;
 
-    // Base reset styles (same as ArticleEmbed)
+    // Minimal reset — let page CSS handle layout, only set safety constraints.
     const resetCSS = `
       :host {
         display: block;
-        all: initial;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        color: #333;
-        line-height: 1.6;
-        font-size: 16px;
       }
       *, *::before, *::after { box-sizing: border-box; }
 
       .assembled-article-content {
-        padding: 20px 24px;
-        max-width: 100%;
-        overflow: hidden;
-        background: #fff;
+        overflow-x: hidden;
         word-wrap: break-word;
         overflow-wrap: break-word;
       }
 
-      img {
-        max-width: 100%;
-        height: auto;
-        display: block;
-        margin: 0 auto;
-      }
-
-      a { color: #0066cc; text-decoration: none; }
-      a:hover { text-decoration: underline; }
-
-      pre, code {
-        overflow-x: auto;
-        max-width: 100%;
-        font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
-        font-size: 0.9em;
-      }
-      pre {
-        padding: 12px 16px;
-        background: #f5f5f5;
-        border-radius: 6px;
-        line-height: 1.4;
-      }
-      code { padding: 2px 4px; background: #f0f0f0; border-radius: 3px; }
-      pre code { padding: 0; background: none; }
-
-      table { border-collapse: collapse; max-width: 100%; overflow-x: auto; display: block; }
-      th, td { padding: 8px 12px; border: 1px solid #ddd; text-align: left; }
-      th { background: #f5f5f5; font-weight: 600; }
-
-      ul, ol { padding-left: 24px; }
-      li { margin-bottom: 4px; }
-
-      h1, h2, h3, h4, h5, h6 {
-        margin-top: 1.2em;
-        margin-bottom: 0.5em;
-        line-height: 1.3;
-        color: #111;
-      }
-      h1 { font-size: 1.8em; }
-      h2 { font-size: 1.5em; }
-      h3 { font-size: 1.25em; }
-
-      p { margin: 0.8em 0; }
-
-      blockquote {
-        margin: 1em 0;
-        padding: 0.5em 1em;
-        border-left: 4px solid #ddd;
-        color: #666;
-        background: #fafafa;
-      }
-
-      figure { margin: 1em auto; max-width: 100%; }
-      figcaption { font-size: 0.85em; color: #666; margin-top: 0.5em; }
+      img { max-width: 100%; height: auto; }
+      svg:not([width]) { max-height: 1em; width: auto; }
+      pre, code { overflow-x: auto; max-width: 100%; }
+      table { max-width: 100%; overflow-x: auto; }
 
       nav, .ad, .advertisement, .sidebar, .related-articles,
       [role="navigation"], [role="banner"], [aria-hidden="true"] {
@@ -221,10 +163,43 @@ const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
       }
     `;
 
-    const pageCSS = (htmlData.styles || []).join('\n');
+    // Fallback styles — only used when page has no captured CSS.
+    // When page CSS exists, fallback values (light-theme colors, font stacks)
+    // would fight with the page's theme via CSS inheritance.
+    const hasPageCSS = (htmlData.styles || []).length > 0 || (htmlData.stylesheet_urls || []).length > 0;
+    const fallbackCSS = hasPageCSS ? '' : `
+      :where(.assembled-article-content) {
+        background: #fff;
+        color: #333;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        font-size: 16px;
+      }
+      :where(a) { color: #0066cc; text-decoration: none; }
+      :where(a:hover) { text-decoration: underline; }
+      :where(pre) { padding: 12px 16px; background: #f5f5f5; border-radius: 6px; line-height: 1.4; }
+      :where(code) { padding: 2px 4px; background: #f0f0f0; border-radius: 3px; font-size: 0.9em; }
+      :where(pre code) { padding: 0; background: none; }
+      :where(th, td) { padding: 8px 12px; border: 1px solid #ddd; text-align: left; }
+      :where(th) { background: #f5f5f5; font-weight: 600; }
+      :where(h1, h2, h3, h4, h5, h6) { margin-top: 1.2em; margin-bottom: 0.5em; line-height: 1.3; }
+      :where(p) { margin: 0.8em 0; }
+      :where(blockquote) { margin: 1em 0; padding: 0.5em 1em; border-left: 4px solid #ddd; color: #666; }
+    `;
+
+    // Original page styles — rewrite CSS selectors for Shadow DOM compatibility:
+    // :root → :host: CSS custom properties defined on :root must target :host.
+    // html → :host: Rules targeting <html> (backgrounds, fonts, variables) must target :host.
+    // body → zoh-body: Server emits <zoh-body> instead of <body> (DOMPurify strips <body>).
+    // URL rewriting (fonts, images) is done server-side in fragment_html_service.
+    const pageCSS = (htmlData.styles || [])
+      .join('\n')
+      .replace(/:root/g, ':host')
+      .replace(/(?<![.\w\-"'/])html(?=[\s,{.#:\[>+~])/g, ':host')
+      .replace(/(?<![.\w\-"'/])body(?=[\s,{.#:\[>+~])/g, 'zoh-body');
 
     const cleanHtml = DOMPurify.sanitize(htmlData.html, {
-      ADD_TAGS: ['style'],
+      ADD_TAGS: ['style', 'zoh-body'],
       ADD_ATTR: ['target', 'rel'],
       ALLOW_DATA_ATTR: true,
       FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'],
@@ -237,6 +212,7 @@ const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
 
     shadow.innerHTML = `
       <style>${resetCSS}</style>
+      <style>${fallbackCSS}</style>
       <style>${pageCSS}</style>
       ${stylesheetLinks}
       <div class="assembled-article-content">
@@ -494,7 +470,10 @@ const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
           )}
           <div className="fragment-metadata" onClick={handleMetadataClick}>
             <div className="fragment-archetype-badge">Article{FEATURES.DEBUG_PAGE_NUMBERS && page_number ? ` · Page ${page_number}` : ''}</div>
-            <div className="fragment-domain">{domain}</div>
+            <div className="fragment-domain">
+              {site_name || domain}
+              {author && <span className="fragment-author"> · {author}</span>}
+            </div>
           </div>
           <div className="fragment-hint" onClick={handleMetadataClick}>
             <span className="hint-icon">↗</span>
