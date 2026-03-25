@@ -23,8 +23,8 @@ import FilterBar from './FilterBar';
 import { FEATURES } from '../../utils/features';
 import '../../styles/Feed.css';
 
-const Feed = () => {
-  const { items, agentPushCards, annotations, loading, error, hasMore, loadMore, refresh, refreshAgentCards, removeCard, clearDismissedSources, filters, applyFilters } = useFeedData();
+const Feed = ({ modernOnly = false }) => {
+  const { items, agentPushCards, annotations, loading, error, hasMore, loadMore, refresh, refreshAgentCards, removeCard, clearDismissedSources, filters, applyFilters } = useFeedData({ modernOnly });
   const { lens, activateLens, clearLens, isLensActive } = useFeedLens();
   const { thinkingState, startThinking, dismiss: dismissThinking, clear: clearThinking } = useAgentThinking();
   const feedRef = useRef(null);

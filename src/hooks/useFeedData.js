@@ -48,7 +48,7 @@ const collectFragmentIds = (items) => {
   return ids;
 };
 
-export const useFeedData = () => {
+export const useFeedData = ({ modernOnly = false } = {}) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -114,7 +114,7 @@ export const useFeedData = () => {
           20, null,
           filters.domains, filters.archetypes, null,
           filters.curated, filters.source, filters.pages, filters.search,
-          anonymousId, excludeIds
+          anonymousId, excludeIds, filters.fragmentIds, modernOnly
         ),
         fetchAgentCards(10),
       ]);
@@ -184,7 +184,7 @@ export const useFeedData = () => {
       loadingRef.current = false;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.domains, filters.archetypes, filters.pages, filters.source, filters.search, loadTrigger]);
+  }, [filters.domains, filters.archetypes, filters.pages, filters.fragmentIds, filters.source, filters.search, loadTrigger]);
 
   /**
    * Load more feed items (for infinite scroll)
@@ -204,7 +204,7 @@ export const useFeedData = () => {
         20, null,
         filters.domains, filters.archetypes, null,
         false, filters.source, filters.pages, filters.search,
-        anonymousId, excludeIds
+        anonymousId, excludeIds, filters.fragmentIds, modernOnly
       );
 
       const newItems = data.items || [];

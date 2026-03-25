@@ -156,11 +156,23 @@ const ArticleEmbed = ({ fragmentId, archetype, domain, url, hasHtml, bbox }) => 
     // html → :host: Rules targeting <html> (backgrounds, fonts, variables) must target :host.
     // body → zoh-body: Server emits <zoh-body> instead of <body> (DOMPurify strips <body>).
     // URL rewriting (fonts, images) is done server-side in fragment_html_service.
-    const pageCSS = (htmlData.styles || [])
+    let pageCSS = (htmlData.styles || [])
       .join('\n')
       .replace(/:root/g, ':host')
       .replace(/(?<![.\w\-"'/])html(?=[\s,{.#:\[>+~])/g, ':host')
       .replace(/(?<![.\w\-"'/])body(?=[\s,{.#:\[>+~])/g, 'zoh-body');
+
+    // Fix percentage font-size on :host (the "62.5% trick").
+    // On <html>, font-size: 62.5% resolves against the browser default (16px) = 10px.
+    // On :host in Shadow DOM, it resolves against the parent element — wrong base.
+    // Convert to absolute px assuming the standard 16px browser root.
+    pageCSS = pageCSS.replace(
+      /(:host\s*\{[^}]*?font-size\s*:\s*)([\d.]+)(%)/g,
+      (match, before, value) => {
+        const px = Math.round(parseFloat(value) / 100 * 16 * 10) / 10;
+        return `${before}${px}px`;
+      }
+    );
 
     // Sanitize HTML with DOMPurify (defense-in-depth)
     const cleanHtml = DOMPurify.sanitize(htmlData.html, {
@@ -173,7 +185,7 @@ const ArticleEmbed = ({ fragmentId, archetype, domain, url, hasHtml, bbox }) => 
 
     // Build external stylesheet links
     const stylesheetLinks = (htmlData.stylesheet_urls || [])
-      .map(url => `<link rel="stylesheet" href="${DOMPurify.sanitize(url)}" crossorigin="anonymous">`)
+      .map(url => `<link rel="stylesheet" href="${DOMPurify.sanitize(url)}">`)
       .join('\n');
 
     // Assemble and inject into Shadow DOM.

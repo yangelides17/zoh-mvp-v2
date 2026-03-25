@@ -102,6 +102,9 @@ export function EngagementProvider({ children, feedRef, feedItems, onTriggerFire
     });
 
     // --- Agent trigger detection ---
+    // TEMPORARILY DISABLED — conserve API budget during feed debugging
+    return;
+    // eslint-disable-next-line no-unreachable
     if (triggerCooldownRef.current) return;
 
     // Find this item in the feed to get affinity scores.

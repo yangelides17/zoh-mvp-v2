@@ -10,9 +10,11 @@ import Feed from './components/Feed/Feed';
 import './App.css';
 
 function App() {
+  const isDevMode = window.location.pathname === '/dev';
+
   return (
     <div className="App">
-      <Feed />
+      <Feed modernOnly={isDevMode} />
       <Analytics />
     </div>
   );

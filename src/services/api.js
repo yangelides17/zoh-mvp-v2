@@ -119,7 +119,7 @@ export const fetchFragmentHtml = async (fragmentId) => {
  * @param {Array<string>} pageIds - Filter by page IDs
  * @returns {Promise<{items: Array, next_cursor: string|null, has_more: boolean}>}
  */
-export const fetchArticles = async (limit = 20, cursor = null, domains = [], archetypes = [], randomSeed = null, curated = false, source = 'all', pageIds = [], search = '', anonymousId = null, excludeIds = '') => {
+export const fetchArticles = async (limit = 20, cursor = null, domains = [], archetypes = [], randomSeed = null, curated = false, source = 'all', pageIds = [], search = '', anonymousId = null, excludeIds = '', fragmentIds = [], modernOnly = false) => {
   try {
     const params = { limit };
 
@@ -146,6 +146,9 @@ export const fetchArticles = async (limit = 20, cursor = null, domains = [], arc
     if (pageIds && pageIds.length > 0) {
       params.page_ids = pageIds.join(',');
     }
+    if (fragmentIds && fragmentIds.length > 0) {
+      params.fragment_ids = fragmentIds.join(',');
+    }
     if (curated) {
       params.curated = 'true';
     }
@@ -154,6 +157,9 @@ export const fetchArticles = async (limit = 20, cursor = null, domains = [], arc
     }
     if (search && search.trim()) {
       params.search = search.trim();
+    }
+    if (modernOnly) {
+      params.modern_only = 'true';
     }
 
     const response = await api.get('/api/feed/articles', { params });
