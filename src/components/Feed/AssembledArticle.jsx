@@ -154,21 +154,29 @@ const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
         overflow-wrap: break-word;
       }
 
-      /* Force content visible — many sites (Shopify, etc.) use JS-driven
-         page-transition animations that start at opacity:0 and fade in via
-         .is-visible class. Without JS execution, content stays invisible. */
+      /* Force content visible + white background.
+         Many sites (Shopify, etc.) use JS-driven page-transition animations
+         that start at opacity:0. Page CSS resets (body { background: transparent })
+         would override :host background without !important here. */
       zoh-body {
         opacity: 1 !important;
         visibility: visible !important;
         animation: none !important;
         transition: none !important;
+        background: #fff !important;
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        position: static !important;
+        float: none !important;
       }
 
-      /* Neutralize layout constraints from ALL wrapper elements at any depth.
-         Targets div/main/section/article — structural wrappers only.
-         grid-template-columns: 1fr collapses multi-column grids (e.g. Wikipedia)
-         to single-column without breaking non-grid elements. */
-      zoh-body, zoh-body div, zoh-body main, zoh-body section, zoh-body article {
+      /* Neutralize layout constraints on backend-tagged ancestor wrappers ONLY.
+         These are structural containers (e.g. #content, .wrapper, .container)
+         reconstructed by _build_ancestor_wrappers() so CSS selectors match.
+         Content divs inside the fragment keep their original layout. */
+      [data-zoh-wrapper] {
         max-width: none !important;
         min-width: 0 !important;
         width: auto !important;
@@ -216,28 +224,10 @@ const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
       :where(blockquote) { margin: 1em 0; padding: 0.5em 1em; border-left: 4px solid #ddd; color: #666; }
     `;
 
-    // Original page styles — rewrite CSS selectors for Shadow DOM compatibility:
-    // :root → :host: CSS custom properties defined on :root must target :host.
-    // html → :host: Rules targeting <html> (backgrounds, fonts, variables) must target :host.
-    // body → zoh-body: Server emits <zoh-body> instead of <body> (DOMPurify strips <body>).
-    // URL rewriting (fonts, images) is done server-side in fragment_html_service.
-    let pageCSS = (htmlData.styles || [])
-      .join('\n')
-      .replace(/:root/g, ':host')
-      .replace(/(?<![.\w\-"'/])html(?=[\s,{.#:\[>+~])/g, ':host')
-      .replace(/(?<![.\w\-"'/])body(?=[\s,{.#:\[>+~])/g, 'zoh-body');
-
-    // Fix percentage font-size on :host (the "62.5% trick").
-    // On <html>, font-size: 62.5% resolves against the browser default (16px) = 10px.
-    // On :host in Shadow DOM, it resolves against the parent element — wrong base.
-    // Convert to absolute px assuming the standard 16px browser root.
-    pageCSS = pageCSS.replace(
-      /(:host\s*\{[^}]*?font-size\s*:\s*)([\d.]+)(%)/g,
-      (match, before, value) => {
-        const px = Math.round(parseFloat(value) / 100 * 16 * 10) / 10;
-        return `${before}${px}px`;
-      }
-    );
+    // Page CSS — server-side processed for Shadow DOM (selector rewriting,
+    // reset stripping, font-size fix, dark theme removal all done in
+    // fragment_html_service._process_css_for_shadow_dom).
+    const pageCSS = (htmlData.styles || []).join('\n');
 
     const cleanHtml = DOMPurify.sanitize(htmlData.html, {
       ADD_TAGS: ['style', 'zoh-body'],
