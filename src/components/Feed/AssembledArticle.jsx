@@ -139,23 +139,53 @@ const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
     const shadow = shadowRootRef.current;
     if (!shadow) return;
 
-    // Minimal reset — let page CSS handle layout, only set safety constraints.
+    // Reset + layout constraints for the fragment container.
     const resetCSS = `
       :host {
         display: block;
+        background: #fff;
       }
       *, *::before, *::after { box-sizing: border-box; }
 
       .assembled-article-content {
+        padding: 24px 32px;
         overflow-x: hidden;
         word-wrap: break-word;
         overflow-wrap: break-word;
       }
 
+      /* Force content visible — many sites (Shopify, etc.) use JS-driven
+         page-transition animations that start at opacity:0 and fade in via
+         .is-visible class. Without JS execution, content stays invisible. */
+      zoh-body {
+        opacity: 1 !important;
+        visibility: visible !important;
+        animation: none !important;
+        transition: none !important;
+      }
+
+      /* Neutralize layout constraints from ALL wrapper elements at any depth.
+         Targets div/main/section/article — structural wrappers only.
+         grid-template-columns: 1fr collapses multi-column grids (e.g. Wikipedia)
+         to single-column without breaking non-grid elements. */
+      zoh-body, zoh-body div, zoh-body main, zoh-body section, zoh-body article {
+        max-width: none !important;
+        min-width: 0 !important;
+        width: auto !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        float: none !important;
+        position: static !important;
+        grid-template-columns: 1fr !important;
+        column-gap: 0 !important;
+      }
+
       img { max-width: 100%; height: auto; }
       svg:not([width]) { max-height: 1em; width: auto; }
       pre, code { overflow-x: auto; max-width: 100%; }
-      table { max-width: 100%; overflow-x: auto; }
+      table { max-width: 100%; overflow-x: auto; display: block; }
 
       nav, .ad, .advertisement, .sidebar, .related-articles,
       [role="navigation"], [role="banner"], [aria-hidden="true"] {
@@ -163,11 +193,10 @@ const AssembledArticle = ({ article, annotations = {}, isDesktop = false }) => {
       }
     `;
 
-    // Fallback styles — only used when page has no captured CSS.
-    // When page CSS exists, fallback values (light-theme colors, font stacks)
-    // would fight with the page's theme via CSS inheritance.
-    const hasPageCSS = (htmlData.styles || []).length > 0 || (htmlData.stylesheet_urls || []).length > 0;
-    const fallbackCSS = hasPageCSS ? '' : `
+    // Fallback styles — always injected with :where() (zero specificity)
+    // so page CSS always wins when present. If page CSS fails to load
+    // (CORS), fragments still look decent.
+    const fallbackCSS = `
       :where(.assembled-article-content) {
         background: #fff;
         color: #333;

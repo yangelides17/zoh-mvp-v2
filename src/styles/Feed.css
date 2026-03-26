@@ -1066,7 +1066,8 @@
 }
 
 .fragment-card.deep-dive-active .article-embed-container {
-  width: 85%;
+  width: 90%;
+  max-width: 900px;
   max-height: 70vh;
 }
 

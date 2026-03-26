@@ -9,8 +9,8 @@
 /* Main container */
 .article-embed-container {
   position: relative;
-  width: 90%;
-  max-width: 800px;
+  width: 95%;
+  max-width: 1100px;
   max-height: 80vh;
   background: #fff;
   border-radius: 12px;
@@ -56,8 +56,8 @@
 
 /* Loading placeholder - matches VideoEmbed pattern */
 .article-embed-placeholder {
-  width: 90%;
-  max-width: 800px;
+  width: 95%;
+  max-width: 1100px;
   height: 400px;
   background: #1a1a1a;
   border-radius: 12px;
